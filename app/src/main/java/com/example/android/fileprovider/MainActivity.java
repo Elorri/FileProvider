@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 0;
     private static final int REQUEST_IMAGE_CAPTURE = 1;
 
-    private static final String FILE_PROVIDER_AUTHORITY = "co.carlosandresjimenez.android.myfileprovider";
+    private static final String FILE_PROVIDER_AUTHORITY = "com.example.android.fileprovider";
 
     private ImageView mImageView;
     private TextView mTextView;
@@ -120,6 +120,12 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d(LOG_TAG, "File: " + file.getAbsolutePath());
 
+            //Will look for a provider in the manifest with authority equals to
+            // FILE_PROVIDER_AUTHORITY and then will look for the file given in parameter in all
+            // its resource paths. When the file is found it create a corresponding uri.
+            //Same process is used by FileManager when browsing file, it looks if an app has
+            // registered the path where the file is. Then it query the content resolver getType
+            // method to get the Mimetype.
             mUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, file);
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
