@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void openImageSelector(View view) {
+    public void pickImage(View view) {
         Intent intent;
         Log.e(LOG_TAG, "While is set and the ifs are worked through.");
 
@@ -114,20 +114,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void takePicture(View view) {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 
         try {
-            File f = createImageFile();
+            File file = createImageFile();
 
-            Log.d(LOG_TAG, "File: " + f.getAbsolutePath());
+            Log.d(LOG_TAG, "File: " + file.getAbsolutePath());
 
-            mUri = FileProvider.getUriForFile(
-                    this, FILE_PROVIDER_AUTHORITY, f);
+            mUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, file);
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
 
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
-
-            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
             }
 
         } catch (IOException e) {
@@ -171,8 +169,7 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap getBitmapFromUri(Uri uri) {
         ParcelFileDescriptor parcelFileDescriptor = null;
         try {
-            parcelFileDescriptor =
-                    getContentResolver().openFileDescriptor(uri, "r");
+            parcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
             FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
             Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
             parcelFileDescriptor.close();
@@ -219,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
                     .setAction("Select", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            openImageSelector(view);
+                            pickImage(view);
                         }
                     }).show();
         }
@@ -256,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
                     .setAction("Select", new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            openImageSelector(view);
+                            pickImage(view);
                         }
                     }).show();
         }

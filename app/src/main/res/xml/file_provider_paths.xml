@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths >
     <cache-path name="share" path="/" />
+    <!-- Is this working ?? <external-path name="my_images"   path="Android/data/org.projects
+    .cameraapp/files/Pictures" />-->
 </paths>
