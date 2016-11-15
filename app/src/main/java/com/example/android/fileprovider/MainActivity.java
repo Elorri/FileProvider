@@ -66,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
         mTextView = (TextView) findViewById(R.id.image_uri);
         mImageView = (ImageView) findViewById(R.id.image);
+
+        getContentResolver().
     }
 
     @Override
