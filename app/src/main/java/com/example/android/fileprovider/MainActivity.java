@@ -10,7 +10,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -30,8 +29,6 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,11 +47,8 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap mBitmap;
 
     private boolean isGalleryPicture = false;
+    private int REQUEST_CODE=2;
 
-    private static final String JPEG_FILE_PREFIX = "IMG_";
-    private static final String JPEG_FILE_SUFFIX = ".jpg";
-
-    private static final String CAMERA_DIR = "/dcim/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
         mTextView = (TextView) findViewById(R.id.image_uri);
         mImageView = (ImageView) findViewById(R.id.image);
 
-        getContentResolver().
     }
 
     @Override
@@ -118,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
     public void takePicture(View view) {
 
         try {
-            File file = createImageFile();
+            File file =FileUtils.createImageFile(this);
 
             Log.d(LOG_TAG, "File: " + file.getAbsolutePath());
 
@@ -338,37 +331,16 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = JPEG_FILE_PREFIX + timeStamp + "_";
-        File albumF = getAlbumDir();
-        File imageF = File.createTempFile(imageFileName, JPEG_FILE_SUFFIX, albumF);
-        return imageF;
+    public void exportFile(View view) {
     }
 
-    private File getAlbumDir() {
-        File storageDir = null;
+    public void importFile(View view) {
+    }
 
-        if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-
-            storageDir = new File(Environment.getExternalStorageDirectory()
-                    + CAMERA_DIR
-                    + getString(R.string.app_name));
-
-            if (storageDir != null) {
-                if (!storageDir.mkdirs()) {
-                    if (!storageDir.exists()) {
-                        Log.d("CameraSample", "failed to create directory");
-                        return null;
-                    }
-                }
-            }
-
-        } else {
-            Log.v(getString(R.string.app_name), "External storage is not mounted READ/WRITE.");
-        }
-
-        return storageDir;
+    public void openFileManager(View view) {
+        Intent intent=new Intent();
+        intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(intent, REQUEST_CODE);
     }
 }
