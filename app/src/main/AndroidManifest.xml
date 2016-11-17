@@ -2,6 +2,8 @@
 <manifest package="com.example.android.fileprovider"
           xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -9,15 +11,36 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
         <activity android:name=".MainActivity">
+            <!--Needed to start the app from the device launcher icon. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!--Needed to start the app from the file manager -->
+            <intent-filter>
+                <!-- host, scheme and mimetype attributes are required for the pathPattern attribute to work, we set that to the wildcard to match anything
+                VIEW and DEFAULT both needed to make the app showing as open .nebo candidate-->
+                <data
+                    android:host="*"
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.nebo"
+                    android:scheme="file"/>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <!--Needed to start the app from a mail attachment-->
+            <intent-filter>
+                <data
+                    android:mimeType="application/octet-stream"
+                    android:pathPattern=".*\\.nebo"/>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
         </activity>
 
         <provider
-            android:name="android.support.v4.content.FileProvider"
-            android:authorities="@string/authority"
+            android:name=".CustomFileProvider"
+            android:authorities="com.example.android.fileprovider"
             android:permission="android.permission.MANAGE_DOCUMENTS"
             android:enabled="true"
             android:exported="false"

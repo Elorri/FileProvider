@@ -37,6 +37,13 @@
         android:scaleType="centerCrop"/>
 
     <Button
+        android:id="@+id/fileManager"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="createFile"
+        android:text="Create file"/>
+
+    <Button
         android:id="@+id/exportFile"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -50,10 +57,5 @@
         android:onClick="importFile"
         android:text="Import .custom"/>
 
-    <Button
-        android:id="@+id/fileManager"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="openFileManager"
-        android:text="Open File Manager"/>
+
 </LinearLayout>

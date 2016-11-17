@@ -1,6 +1,7 @@
 package com.example.android.fileprovider;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -24,11 +25,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -47,13 +50,16 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap mBitmap;
 
     private boolean isGalleryPicture = false;
-    private int REQUEST_CODE=2;
+    private int REQUEST_CODE = 2;
+    private File mLocal;
+    private Context mContext;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mContext = getApplicationContext();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -61,7 +67,11 @@ public class MainActivity extends AppCompatActivity {
         mTextView = (TextView) findViewById(R.id.image_uri);
         mImageView = (ImageView) findViewById(R.id.image);
 
+        String path = importUri(getIntent().getData());
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "local path " + path);
+
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -111,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     public void takePicture(View view) {
 
         try {
-            File file =FileUtils.createImageFile(this);
+            File file = FileUtils.createImageFile(this);
 
             Log.d(LOG_TAG, "File: " + file.getAbsolutePath());
 
@@ -164,6 +174,10 @@ public class MainActivity extends AppCompatActivity {
             mImageView.setImageBitmap(mBitmap);
 
             isGalleryPicture = false;
+        } else if (requestCode == REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
+            Uri uri = resultData.getData();
+            importUri(uri);
         }
     }
 
@@ -331,16 +345,115 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    public void createFile(View view) {
+        File directory = FileUtils.getAppDir(this, "_nebo");
+        File file = FileUtils.getUniqueFile(directory, "Welcome", ".nebo");
+        mLocal = FileUtils.createFile(directory, file);
+    }
+
+
     public void exportFile(View view) {
+        Intent intent = new Intent();
+        intent.setAction(Intent.ACTION_SEND);
+        File directory = FileUtils.getPublicAppTempDir(this, "_nebo");
+        File file = FileUtils.getUniqueFile(directory, "Welcome", ".nebo");
+        File external = FileUtils.streamToFile(directory, file, FileUtils.getStream(mLocal));
+        Uri uri = Uri.fromFile(external);
+        intent.putExtra(Intent.EXTRA_STREAM, uri);
+        intent.setType("*/*");
+        startActivity(Intent.createChooser(intent, "Export"));
     }
 
     public void importFile(View view) {
-    }
-
-    public void openFileManager(View view) {
-        Intent intent=new Intent();
+        Intent intent = new Intent();
         intent.setAction(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
         startActivityForResult(intent, REQUEST_CODE);
     }
+
+    private String importUri(Uri uri) {
+        if (uri != null) //We are opening a "new" .nebo
+        {
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "uri " + uri);
+            String name = null;
+            InputStream in = null;
+            if (uri.getScheme().equals("file")) //We are opening a file
+            {
+                Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "We are opening a File");
+                String path = uri.getPath(); //public directory path
+                File external = new File(path);
+                name = external.getName();
+                in = FileUtils.getStream(external);
+            } else //We are opening a mail attachment
+            {
+                Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "We are opening an attachement");
+                name = getNotebookName(mContext, uri);
+                in = FileUtils.getStream(mContext, uri);
+            }
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "notebookFullName " + name);
+            String fullName[] = splitNameFromExtension(name);
+            name = fullName[0];
+            String extension = fullName[1];
+            if (isExtensionValid(extension, ".nebo")) {
+                File directory = FileUtils.getAppDir(this, "_nebo");
+                File file = FileUtils.getUniqueFile(directory, name, ".nebo");
+                File local = FileUtils.streamToFile(directory, file, in);
+                Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "File imported " + local);
+                if (isFileSizeValid(local)) {
+                    return local.getAbsolutePath(); //local directory path
+                } else {
+                    return getLastNotebookOpenPath();
+                }
+            } else {
+                Toast.makeText(mContext, "File can't be imported", Toast.LENGTH_LONG).show();
+                return getLastNotebookOpenPath();
+            }
+        } else {
+            return getLastNotebookOpenPath();
+        }
+    }
+
+    private boolean isFileSizeValid(File file) {
+        return file.length() > 0;
+    }
+
+    private String getLastNotebookOpenPath() {
+        //We are reopening the last notebook opened
+        // SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(mContext);
+        // return sp.getString(context.getResources().getString(R.string.last_opened_notebook_tag), null);
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "no file imported");
+        return null;
+    }
+
+    private boolean isExtensionValid(String actual, String expected) {
+        return actual.equals(expected);
+    }
+
+    private String[] splitNameFromExtension(String name) {
+        int insertion = name.lastIndexOf(".");
+        String[] fullName = new String[2];
+        if (insertion == -1) {
+            insertion = name.length();
+        }
+        fullName[0] = name.substring(0, insertion);
+        fullName[1] = name.substring(insertion, name.length());
+        return fullName;
+    }
+
+
+    private static String getNotebookName(Context context, Uri uri) {
+        String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
+
+        Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
+        try {
+            if (cursor.moveToFirst()) {
+                return cursor.getString(cursor.getColumnIndex(projection[0]));
+            }
+        } finally {
+            cursor.close();
+        }
+        return null;
+    }
+
 }
