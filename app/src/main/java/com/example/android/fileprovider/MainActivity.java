@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -345,23 +346,33 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    public void createFile(View view) {
-        File directory = FileUtils.getAppDir(this, "_nebo");
-        File file = FileUtils.getUniqueFile(directory, "Welcome", ".nebo");
-        mLocal = FileUtils.createFile(directory, file);
-    }
+    public void copyFileToLocalDir(View view) {
+        File src = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "Welcome(2).nebo");
 
+        File directory = FileUtils.getAppDir(this, "_nebo");
+        File target = FileUtils.getUniqueFile(directory, "Welcome.nebo");
+
+        mLocal = FileUtils.streamToFile(directory, target, FileUtils.getStream(src));
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "file copied to local dir " + mLocal + " " + mLocal.length() + " byte");
+    }
 
     public void exportFile(View view) {
         Intent intent = new Intent();
         intent.setAction(Intent.ACTION_SEND);
         File directory = FileUtils.getPublicAppTempDir(this, "_nebo");
-        File file = FileUtils.getUniqueFile(directory, "Welcome", ".nebo");
+        File file = FileUtils.getUniqueFile(directory, "Welcome.nebo");
         File external = FileUtils.streamToFile(directory, file, FileUtils.getStream(mLocal));
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "file copied to public dir " + external);
         Uri uri = Uri.fromFile(external);
         intent.putExtra(Intent.EXTRA_STREAM, uri);
         intent.setType("*/*");
         startActivity(Intent.createChooser(intent, "Export"));
+    }
+
+    private void printFiles(File directory) {
+        for (File file : directory.listFiles()) {
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "" + file);
+        }
     }
 
     public void importFile(View view) {
@@ -376,47 +387,52 @@ public class MainActivity extends AppCompatActivity {
         if (uri != null) //We are opening a "new" .nebo
         {
             Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "uri " + uri);
-            String name = null;
+            String fullname = null;
+            long size = 0;
             InputStream in = null;
             if (uri.getScheme().equals("file")) //We are opening a file
             {
                 Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "We are opening a File");
                 String path = uri.getPath(); //public directory path
                 File external = new File(path);
-                name = external.getName();
+                fullname = external.getName();
+                size = external.length();
+                if (!isFileValid(fullname, size)) {
+                    Toast.makeText(mContext, "File can't be imported", Toast.LENGTH_LONG).show();
+                    return getLastNotebookOpenPath();
+                }
                 in = FileUtils.getStream(external);
             } else //We are opening a mail attachment
             {
                 Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "We are opening an attachement");
-                name = getNotebookName(mContext, uri);
-                in = FileUtils.getStream(mContext, uri);
-            }
-            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "notebookFullName " + name);
-            String fullName[] = splitNameFromExtension(name);
-            name = fullName[0];
-            String extension = fullName[1];
-            if (isExtensionValid(extension, ".nebo")) {
-                File directory = FileUtils.getAppDir(this, "_nebo");
-                File file = FileUtils.getUniqueFile(directory, name, ".nebo");
-                File local = FileUtils.streamToFile(directory, file, in);
-                Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "File imported " + local);
-                if (isFileSizeValid(local)) {
-                    return local.getAbsolutePath(); //local directory path
-                } else {
+                String[] fileInfo = getFileInfo(mContext, uri);
+                fullname = fileInfo[0];
+                size = Long.valueOf(fileInfo[1]);
+                if (!isFileValid(fullname, size)) {
+                    Toast.makeText(mContext, "File can't be imported", Toast.LENGTH_LONG).show();
                     return getLastNotebookOpenPath();
                 }
-            } else {
-                Toast.makeText(mContext, "File can't be imported", Toast.LENGTH_LONG).show();
-                return getLastNotebookOpenPath();
+                in = FileUtils.getStream(mContext, uri);
             }
+            Toast.makeText(mContext, "Should open folder dialog here", Toast.LENGTH_LONG).show();
+            File directory = FileUtils.getAppDir(this, "_nebo");
+            File file = FileUtils.getUniqueFile(directory, fullname);
+            File local = FileUtils.streamToFile(directory, file, in);
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "Copied file Size "+local.length());
+
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "File imported " + local);
+            return local.getAbsolutePath();
         } else {
             return getLastNotebookOpenPath();
         }
     }
 
-    private boolean isFileSizeValid(File file) {
-        return file.length() > 0;
+    private boolean isFileValid(String name, long size) {
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "name " + name + " size " + size);
+        String extension = splitNameFromExtension(name)[1];
+        return ((extension.equals(".nebo")) && (size > 0));
     }
+
 
     private String getLastNotebookOpenPath() {
         //We are reopening the last notebook opened
@@ -426,9 +442,6 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    private boolean isExtensionValid(String actual, String expected) {
-        return actual.equals(expected);
-    }
 
     private String[] splitNameFromExtension(String name) {
         int insertion = name.lastIndexOf(".");
@@ -442,13 +455,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private static String getNotebookName(Context context, Uri uri) {
-        String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME};
+    private static String[] getFileInfo(Context context, Uri uri) {
+        String[] projection = {MediaStore.MediaColumns.DISPLAY_NAME, MediaStore.MediaColumns.SIZE};
 
         Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null);
         try {
             if (cursor.moveToFirst()) {
-                return cursor.getString(cursor.getColumnIndex(projection[0]));
+                return new String[]{
+                        cursor.getString(cursor.getColumnIndex(projection[0])),
+                        cursor.getString(cursor.getColumnIndex(projection[1]))
+                };
             }
         } finally {
             cursor.close();

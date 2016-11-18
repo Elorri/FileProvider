@@ -6,14 +6,13 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Log;
 
-import org.apache.commons.io.IOUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -158,8 +157,14 @@ public class FileUtils {
         return file;
     }
 
-    public static File getUniqueFile(File directory, String fileName, String extension) {
-        File file = new File(directory, fileName + "" + extension);
+    /**
+     * Check if the file name we want to give exist and suggest another one if so.
+     * @param directory where we want our file
+     * @param fullname with extension
+     * @return
+     */
+    public static File getUniqueFile(File directory, String fullname) {
+        File file = new File(directory, fullname);
         return getUniqueFile(file, 0);
     }
 
@@ -203,7 +208,8 @@ public class FileUtils {
     public static File streamToFile(File directory, File fileName, InputStream in) {
         File file = createFile(directory, fileName);
         try (FileOutputStream out = new FileOutputStream(file)) {
-            IOUtils.copy(in, out);
+           // IOUtils.copy(in, out);
+            copyStream(in, out);
         } catch (IOException e) {
             Log.e(TAG, "An error occured while copying file stream", e);
         }
@@ -236,7 +242,23 @@ public class FileUtils {
         }
     }
 
-
+    public static void copyStream(InputStream input, OutputStream output)
+    {
+        try
+        {
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = input.read(buffer)) != -1)
+            {
+                output.write(buffer, 0, read);
+            }
+            input.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
 
 }

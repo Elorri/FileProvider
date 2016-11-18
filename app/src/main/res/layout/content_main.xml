@@ -40,8 +40,8 @@
         android:id="@+id/fileManager"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="createFile"
-        android:text="Create file"/>
+        android:onClick="copyFileToLocalDir"
+        android:text="Copy file to local dir"/>
 
     <Button
         android:id="@+id/exportFile"
