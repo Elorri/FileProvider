@@ -271,4 +271,22 @@ public class FileUtils {
         }
     }
 
+    public static String readStream(InputStream input) {
+
+        StringBuilder output = new StringBuilder();
+        try {
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = input.read(buffer)) != -1) {
+                output.append(new String(buffer, 0, read));
+            }
+            input.close();
+            return output.toString();
+        } catch (IOException e) {
+            // if any reading error occurs, we can't do anything here
+            Log.e(TAG, "Error while reading stream content ", e);
+            return null;
+        }
+    }
+
 }

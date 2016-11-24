@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     private int REQUEST_CODE = 2;
     private File mLocal;
     private Context mContext;
+    private String TAG;
 
 
     @Override
@@ -517,6 +518,9 @@ public class MainActivity extends AppCompatActivity {
                 "clipDescriptionLabel",          // label for the clip (description ?)
                 uri);// the URI
 
+        ClipData.Item clipDataItem= new ClipData.Item(uri);
+        clipData.addItem(clipDataItem);
+
         clipboard.setPrimaryClip(clipData);
     }
 
@@ -540,12 +544,20 @@ public class MainActivity extends AppCompatActivity {
         // Gets the clipboard data from the clipboard
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
-            String text = null;
-            String title = null;
-            ClipData.Item item = clip.getItemAt(0);// Gets the first item from the clipboard data
+            ClipData.Item item = clip.getItemAt(1);// Gets the first item from the clipboard data
             Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
             contentResolver.query(uri, null, null, null, null, null);
+            //((TextView)findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
+            InputStream in= null;
+            try {
+                in = getContentResolver().openInputStream(uri);
+                String text = FileUtils.readStream(in);
+                ((TextView)findViewById(R.id.copied_text)).setText(text);
+            } catch (FileNotFoundException e) {
+                Log.e(TAG, "Error while opening stream "+uri, e);
+            }
+
         }
     }
 
