@@ -12,6 +12,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -45,7 +46,7 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
 
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
-    private static final String TAG=CustomFileProvider.class.getName();
+    private static final String TAG = CustomFileProvider.class.getName();
 
     static UriMatcher buildUriMatcher() {
         // All paths added to the UriMatcher have a corresponding code to return when a match is
@@ -81,7 +82,7 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
                 return null;
             case NEBO_FILE_URI:
                 Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "NEBO_FILE_URI");
-                return null;
+                return super.query(uri, projection, selection, selectionArgs, sortOrder);
             default:
                 return super.query(uri, projection, selection, selectionArgs, sortOrder);
         }
@@ -117,8 +118,7 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
      * @throws FileNotFoundException if there is no file associated with the incoming URI.
      */
     @Override
-    public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts)
-            throws FileNotFoundException {
+    public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
         // Checks to see if the MIME type filter matches a supported MIME type.
         String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
         // If the MIME type is supported
@@ -152,6 +152,27 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
     }
 
     /**
+     * Returns the types of available data streams.  URIs to specific notes are supported.
+     * The application can convert such a note to a plain text stream.
+     *
+     * @param uri            the URI to analyze
+     * @param mimeTypeFilter The MIME type to check for. This method only returns a data stream
+     *                       type for MIME types that match the filter. Currently, only text/plain MIME types match.
+     * @return a data stream MIME type. Currently, only text/plan is returned.
+     * @throws IllegalArgumentException if the URI pattern doesn't match any supported patterns.
+     */
+    @Override
+    public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
+        switch (sUriMatcher.match(uri)) {
+            case NEBO_FILE_URI:
+                return CustomContract.CLIP_DESC_MIMETYPES.filterMimeTypes(mimeTypeFilter);
+            default:
+                throw new IllegalArgumentException("Unknown URI " + uri);
+        }
+    }
+
+
+    /**
      * Implementation of {@link android.content.ContentProvider.PipeDataWriter}
      * to perform the actual work of converting the data in one of cursors to a
      * stream of data for the client to read.
@@ -160,16 +181,22 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
     public void writeDataToPipe(ParcelFileDescriptor output, Uri uri, String mimeType, Bundle opts, Cursor cursor) {
         Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "See if we do different stream import depending on the data type given");
 
+        Log.e("FP", "output " + output);
+
         FileOutputStream out = new FileOutputStream(output.getFileDescriptor());
         PrintWriter printWriter = null;
-        String charset="UTF-8";
+        String charset = "UTF-8";
         try {
             printWriter = new PrintWriter(new OutputStreamWriter(out, charset));
-//            printWriter.println(cursor.getString(READ_NOTE_TITLE_INDEX));
-//            printWriter.println("");
-//            printWriter.println(cursor.getString(READ_NOTE_NOTE_INDEX));
+            FileInputStream in = openFile(uri, "r");
+            String text = FileUtils.readStream(in);
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "text");
+
+            printWriter.println(text);
         } catch (UnsupportedEncodingException e) {
-            Log.w(TAG, "There was a problem encoding text using "+charset, e);
+            Log.w(TAG, "There was a problem encoding text using " + charset, e);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } finally {
             cursor.close();
             if (printWriter != null) {
@@ -180,6 +207,7 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
             } catch (IOException e) {
             }
         }
+
 
     }
 }

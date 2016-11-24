@@ -548,16 +548,7 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
             contentResolver.query(uri, null, null, null, null, null);
-            //((TextView)findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
-            InputStream in= null;
-            try {
-                in = getContentResolver().openInputStream(uri);
-                String text = FileUtils.readStream(in);
-                ((TextView)findViewById(R.id.copied_text)).setText(text);
-            } catch (FileNotFoundException e) {
-                Log.e(TAG, "Error while opening stream "+uri, e);
-            }
-
+            ((TextView)findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
         }
     }
 
