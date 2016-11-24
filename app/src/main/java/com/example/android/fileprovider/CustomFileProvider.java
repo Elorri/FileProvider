@@ -4,6 +4,7 @@ import android.content.ContentProvider;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +17,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -40,7 +43,7 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
     private static final int COLLECTION = 300;
 
 
-    private static final int NEBO_FILE_URI = 400; //Will match content://com.example.android.fileprovider/appDir/.tmp/hello(1).txt
+    private static final int CUSTOM_FILE_URI = 400; //Will match content://com.example.android.fileprovider/appDir/.tmp/hello(1).txt
 
     Context mContext;
 
@@ -56,7 +59,7 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
 
         matcher.addURI(CustomContract.CONTENT_AUTHORITY, CustomContract.PATH_NOTEBOOK, NOTEBOOK);
         matcher.addURI(CustomContract.CONTENT_AUTHORITY, CustomContract.PATH_COLLECTION, COLLECTION);
-        matcher.addURI(CustomContract.CONTENT_AUTHORITY, "appDir/" + CustomContract.PATH_TMP_USER + "/*", NEBO_FILE_URI);
+        matcher.addURI(CustomContract.CONTENT_AUTHORITY, "appDir/" + CustomContract.PATH_TMP_USER + "/*", CUSTOM_FILE_URI);
 
         return matcher;
     }
@@ -80,8 +83,8 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
                 return null;
             case COLLECTION:
                 return null;
-            case NEBO_FILE_URI:
-                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "NEBO_FILE_URI");
+            case CUSTOM_FILE_URI:
+                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "CUSTOM_FILE_URI");
                 return super.query(uri, projection, selection, selectionArgs, sortOrder);
             default:
                 return super.query(uri, projection, selection, selectionArgs, sortOrder);
@@ -95,9 +98,9 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
 
         Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "uri " + uri);
         switch (sUriMatcher.match(uri)) {
-            case NEBO_FILE_URI:
-                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "NEBO_FILE_URI " + CustomContract.CONTENT_ITEM_TYPE);
-                return CustomContract.CONTENT_ITEM_TYPE;
+            case CUSTOM_FILE_URI:
+                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "CUSTOM_FILE_URI " + CustomContract.FileEntry.CONTENT_ITEM_TYPE);
+                return CustomContract.FileEntry.CONTENT_ITEM_TYPE;
             default:
                 return null;
         }
@@ -164,7 +167,7 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
     @Override
     public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
         switch (sUriMatcher.match(uri)) {
-            case NEBO_FILE_URI:
+            case CUSTOM_FILE_URI:
                 return CustomContract.CLIP_DESC_MIMETYPES.filterMimeTypes(mimeTypeFilter);
             default:
                 throw new IllegalArgumentException("Unknown URI " + uri);
@@ -188,10 +191,12 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
         String charset = "UTF-8";
         try {
             printWriter = new PrintWriter(new OutputStreamWriter(out, charset));
-            FileInputStream in = openFile(uri, "r");
+            ParcelFileDescriptor fileDescriptor = openFile(uri, "r");
+
+
+            FileInputStream in = (FileInputStream) getContext().getContentResolver().openInputStream(uri); //This line will make call to provider in loop. Not really good.
             String text = FileUtils.readStream(in);
             Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "text");
-
             printWriter.println(text);
         } catch (UnsupportedEncodingException e) {
             Log.w(TAG, "There was a problem encoding text using " + charset, e);
@@ -207,7 +212,53 @@ public class CustomFileProvider extends FileProvider implements ContentProvider.
             } catch (IOException e) {
             }
         }
+    }
 
+//////////////////////////////////////I have not used this finally. Seem to be a solution to transform ParcelFileDescriptor into a stream.
+    @Override
+    public ParcelFileDescriptor openFile(Uri uri, String mode)
+            throws FileNotFoundException {
+        ParcelFileDescriptor[] pipe = null;
 
+        try {
+            pipe = ParcelFileDescriptor.createPipe();
+            AssetManager assets = getContext().getResources().getAssets();
+
+            new TransferThread(assets.open(uri.getLastPathSegment()),  new ParcelFileDescriptor.AutoCloseOutputStream(pipe[1])).start();
+        } catch (IOException e) {
+            Log.e(getClass().getSimpleName(), "Exception opening pipe", e);
+            throw new FileNotFoundException("Could not open pipe for: "  + uri.toString());
+        }
+
+        return (pipe[0]);
+    }
+
+    static class TransferThread extends Thread {
+        InputStream in;
+        OutputStream out;
+
+        TransferThread(InputStream in, OutputStream out) {
+            this.in = in;
+            this.out = out;
+        }
+
+        @Override
+        public void run() {
+            byte[] buf = new byte[1024];
+            int len;
+
+            try {
+                while ((len = in.read(buf)) >= 0) {
+                    out.write(buf, 0, len);
+                }
+
+                in.close();
+                out.flush();
+                out.close();
+            } catch (IOException e) {
+                Log.e(getClass().getSimpleName(),
+                        "Exception transferring file", e);
+            }
+        }
     }
 }

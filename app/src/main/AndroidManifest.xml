@@ -39,18 +39,13 @@
         </activity>
 
         <provider
-            android:name=".CustomFileProvider"
+            android:name=".CopyPasteFileProvider"
             android:authorities="com.example.android.fileprovider"
-            android:permission="android.permission.MANAGE_DOCUMENTS"
-            android:enabled="true"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_provider_paths"/>
-            <intent-filter>
-                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
-            </intent-filter>
         </provider>
     </application>
 
