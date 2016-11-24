@@ -159,8 +159,9 @@ public class FileUtils {
 
     /**
      * Check if the file name we want to give exist and suggest another one if so.
+     *
      * @param directory where we want our file
-     * @param fullname with extension
+     * @param fullname  with extension
      * @return
      */
     public static File getUniqueFile(File directory, String fullname) {
@@ -208,7 +209,7 @@ public class FileUtils {
     public static File streamToFile(File directory, File fileName, InputStream in) {
         File file = createFile(directory, fileName);
         try (FileOutputStream out = new FileOutputStream(file)) {
-           // IOUtils.copy(in, out);
+            // IOUtils.copy(in, out);
             copyStream(in, out);
         } catch (IOException e) {
             Log.e(TAG, "An error occured while copying file stream", e);
@@ -216,49 +217,58 @@ public class FileUtils {
         return file;
     }
 
-    public static FileInputStream getStream(File file)
-    {
-        try
-        {
+    public static FileInputStream getStream(File file) {
+        try {
             return new FileInputStream(file);
-        }
-        catch (FileNotFoundException e)
-        {
+        } catch (FileNotFoundException e) {
             Log.e(TAG, "An error occured while getting file stream", e);
             return null;
         }
     }
 
-    public static InputStream getStream(Context context, Uri uri)
-    {
-        try
-        {
+    public static InputStream getStream(Context context, Uri uri) {
+        try {
             return context.getContentResolver().openInputStream(uri);
-        }
-        catch (FileNotFoundException e)
-        {
+        } catch (FileNotFoundException e) {
             Log.e(TAG, "An error occured while getting file stream", e);
             return null;
         }
     }
 
-    public static void copyStream(InputStream input, OutputStream output)
-    {
-        try
-        {
+    public static void copyStream(InputStream input, OutputStream output) {
+        try {
             byte[] buffer = new byte[1024];
             int read;
-            while ((read = input.read(buffer)) != -1)
-            {
+            while ((read = input.read(buffer)) != -1) {
                 output.write(buffer, 0, read);
             }
             input.close();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    public static String readFile(File file) {
+        if (file == null || !file.isFile()) {
+            return null;
+        }
+
+        FileInputStream input = null;
+        StringBuilder output = new StringBuilder();
+        try {
+            input = new FileInputStream(file);
+            byte[] buffer = new byte[1024];
+            int read;
+            while ((read = input.read(buffer)) != -1) {
+                output.append(new String(buffer, 0, read));
+            }
+            input.close();
+            return output.toString();
+        } catch (IOException e) {
+            // if any reading error occurs, we can't do anything here
+            Log.e(TAG, "Error while reading file content " + file.getAbsolutePath(), e);
+            return null;
+        }
+    }
 
 }

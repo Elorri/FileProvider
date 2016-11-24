@@ -57,5 +57,23 @@
         android:onClick="importFile"
         android:text="Import .custom"/>
 
+    <Button
+        android:id="@+id/copy"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="copy"
+        android:text="Copy text 'Hello'"/>
+
+    <Button
+        android:id="@+id/paste"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="paste"
+        android:text="Paste"/>
+
+    <TextView
+        android:id="@+id/copied_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>
