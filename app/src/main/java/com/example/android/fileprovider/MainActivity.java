@@ -515,12 +515,13 @@ public class MainActivity extends AppCompatActivity {
         ClipData clipData = ClipData.newUri(   // new clipboard item holding a URI
                 getContentResolver(),               // resolver to retrieve URI info
                 "clipDescriptionLabel",          // label for the clip (description ?)
-                uri);                          // the URI
+                uri);// the URI
+
         clipboard.setPrimaryClip(clipData);
     }
 
     private File createStringFile(String text) {
-        File directory = FileUtils.getAppTempDir(mContext, ".tmp");
+        File directory = FileUtils.getAppDir(mContext, ".tmp");
         File file = FileUtils.getUniqueFile(directory, "hello.txt");
 
         try (PrintWriter out = new PrintWriter(file)) {

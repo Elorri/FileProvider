@@ -8,29 +8,29 @@
     Used when we need to store a file for intermediate result.
     Once our calculs are done it's best to remove the files,
     but if we don't the system will remove them when running low.
-    Exple /data/data/com.myscript.nebo.debug/cache/_nebo/-->
+    Exple /data/data/com.myscript.nebo.debug/cache/-->
     <cache-path name="appTempDir" path="/"/>
 
     <!-- We give access to Context.getFileDir() directory
     Used for data we want to keep forever but want to hide from the user
-    Exple to /data/data/com.myscript.nebo.debug/file/My folder/_nebo/-->
+    Exple to /data/data/com.myscript.nebo.debug/file/-->
     <files-path name="appDir" path="/"/>
 
     <!-- We give access to getExternalFilesDir() directory
     Used for data we want visible to the user and other apps. And data we want located in the app directory.
-    Exple to /storage/emulated/0/Android/data/com.myscript.nebo.debug/files/_nebo/-->
+    Exple to /storage/emulated/0/Android/data/com.myscript.nebo.debug/files/-->
     <external-files-path name="publicAppDir" path="/"/>
 
     <!-- We give access to getExternalCacheDir() directory
     Used for data we want visible to the user and other apps.
     And data we want located in the app directory
     And data we want to allow system to delete in case of low memory
-    Exple /storage/emulated/0/Android/data/com.myscript.nebo.debug/cache/_nebo/-->
+    Exple /storage/emulated/0/Android/data/com.myscript.nebo.debug/cache/-->
     <external-cache-path name="publicAppTempDir" path="/"/>
 
     <!-- We give access to getExternalStorageDirectory() directory
     Used for data we want visible to the user and other apps. And data we want in a general directory.
     Exple /storage/emulated/0/Documents/_nebo/
-    Exple /storage/emulated/0/Images/_nebo/-->
+    Exple /storage/emulated/0/Images/-->
     <external-path name="publicDir" path="/"/>
 </paths>

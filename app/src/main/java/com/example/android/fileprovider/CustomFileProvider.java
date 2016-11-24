@@ -26,6 +26,9 @@ public class CustomFileProvider extends FileProvider {
     private static final int NOTEBOOK = 200;
     private static final int COLLECTION = 300;
 
+
+    private static final int NEBO_FILE_URI = 400; //Will match content://com.example.android.fileprovider/appDir/.tmp/hello(1).txt
+
     Context mContext;
 
 
@@ -39,21 +42,9 @@ public class CustomFileProvider extends FileProvider {
 
         matcher.addURI(CustomContract.CONTENT_AUTHORITY, CustomContract.PATH_NOTEBOOK, NOTEBOOK);
         matcher.addURI(CustomContract.CONTENT_AUTHORITY, CustomContract.PATH_COLLECTION, COLLECTION);
-        // matcher.addURI(TieUsContract.CONTENT_AUTHORITY, TieUsContract.AddActionData.PATH_ADD_ACTION + "/#/#/#", DATA_ADD_ACTION_VALIDATE);
+        matcher.addURI(CustomContract.CONTENT_AUTHORITY, "appDir/"+CustomContract.PATH_TMP_USER+ "/*", NEBO_FILE_URI);
+
         return matcher;
-    }
-
-    private int buildUriMatcher(Uri uri) {
-        String localPath = mContext.getCacheDir().getPath();
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "local path" + localPath);
-
-        String path = uri.getPath();
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "path" + path);
-
-        if (path.startsWith(localPath)) {
-            return EXTERNAL_URI;
-        }
-        return sUriMatcher.match(uri);
     }
 
     @Override
@@ -68,12 +59,15 @@ public class CustomFileProvider extends FileProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
         Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "");
-        switch (buildUriMatcher(uri)) {
+        switch (sUriMatcher.match(uri)) {
             case EXTERNAL_URI:
                 return null;
             case NOTEBOOK:
                 return null;
             case COLLECTION:
+                return null;
+            case NEBO_FILE_URI:
+                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "NEBO_FILE_URI");
                 return null;
             default:
                 return super.query(uri, projection, selection, selectionArgs, sortOrder);
@@ -83,8 +77,16 @@ public class CustomFileProvider extends FileProvider {
     @Nullable
     @Override
     public String getType(Uri uri) {
-        Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "");
-        return getType(uri);
+        super.getType(uri);
+
+        Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "uri "+uri);
+        switch (sUriMatcher.match(uri)) {
+            case NEBO_FILE_URI:
+                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "NEBO_FILE_URI "+CustomContract.CONTENT_ITEM_TYPE);
+                return CustomContract.CONTENT_ITEM_TYPE;
+            default:
+                return null;
+        }
     }
 
     @Nullable
