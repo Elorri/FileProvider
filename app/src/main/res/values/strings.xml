@@ -5,5 +5,5 @@
     <string name="select_image">Select Image</string>
     <string name="take_picture">Take Picture</string>
     <string name="authority">com.example.android.fileprovider</string>
-    <string name="custom_extension">.custom</string>
+    <string name="custom_extension">custom</string>
 </resources>

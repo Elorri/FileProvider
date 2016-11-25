@@ -591,59 +591,73 @@ public class MainActivity extends AppCompatActivity {
         clipboard.setPrimaryClip(clipData);
     }
 
+    public void paste(View view) {
+        pasteUsingOpenTypedAsset();
+        pasteUsingOpenAsset();
+        pasteUsingOpenFile();
+        pasteUsingOpenInputStream();
+    }
 
-    public void pasteAsStreamTextUsingOpenTypedAsset(View view) {
+    public void pasteUsingOpenTypedAsset() {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
-            ClipData.Item item = clip.getItemAt(0);// Gets the first item from the clipboard data
-            Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
+            ClipData.Item item = clip.getItemAt(0);
+            Uri uri = item.getUri();
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            try {
-                InputStream stream = getContentResolver().openInputStream(uri);
-                String text = FileUtils.readStream(stream);
-                ((TextView) findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+            Object text = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "text/*", "UTF-8");
+            Object bitmap = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "image/*", null);
+            setViews((TextView) findViewById(R.id.copied_text1), (ImageView) findViewById(R.id.copied_image1), text, bitmap);
         }
     }
 
-    public void pasteAsText(View view) {
+    public void pasteUsingOpenAsset() {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
-            ClipData.Item item = clip.getItemAt(0);// Gets the first item from the clipboard data
-            Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
+            ClipData.Item item = clip.getItemAt(0);
+            Uri uri = item.getUri();
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            ((TextView) findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
+            Object text = FileUtils.coerceToMimetypeUsingOpenAssetFile(this, uri, "r", "text/*", "UTF-8");
+            Object bitmap = FileUtils.coerceToMimetypeUsingOpenAssetFile(this, uri, "r", "image/*", null);
+            setViews((TextView) findViewById(R.id.copied_text2), (ImageView) findViewById(R.id.copied_image2), text, bitmap);
         }
     }
 
-
-
-
-
-
-    public void pasteImage(View view) {
+    public void pasteUsingOpenFile() {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
-            ClipData.Item item = clip.getItemAt(0);// Gets the first item from the clipboard data
-            Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
+            ClipData.Item item = clip.getItemAt(0);
+            Uri uri = item.getUri();
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            ParcelFileDescriptor parcelFileDescriptor = null;
-            try {
-                parcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
-                FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-                Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
-                parcelFileDescriptor.close();
-                mImageView.setImageBitmap(image);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Object text = FileUtils.coerceToMimetypeUsingOpenFile(this, uri, "r", "text/*", "UTF-8");
+            Object bitmap = FileUtils.coerceToMimetypeUsingOpenFile(this, uri, "r", "image/*", null);
+            setViews((TextView) findViewById(R.id.copied_text3), (ImageView) findViewById(R.id.copied_image3), text, bitmap);
+        }
+    }
+
+    public void pasteUsingOpenInputStream() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = clipboard.getPrimaryClip();
+        if (clip != null) {
+            ClipData.Item item = clip.getItemAt(0);
+            Uri uri = item.getUri();
+            Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
+            Object text = FileUtils.coerceToMimetypeUsingOpenInputStream(this, uri, "text/*");
+            Object bitmap = FileUtils.coerceToMimetypeUsingOpenInputStream(this, uri, "image/*");
+            setViews((TextView) findViewById(R.id.copied_text4), (ImageView) findViewById(R.id.copied_image4), text, bitmap);
         }
     }
 
 
+    private void setViews(TextView textView, ImageView imageView, Object text, Object bitmap) {
+        if (bitmap instanceof Bitmap) {
+            textView.setText((String) text);
+            imageView.setImageBitmap((Bitmap) bitmap);
+        } else {
+            textView.setText((String) bitmap);
+            imageView.setImageBitmap(null);
+        }
+    }
 }

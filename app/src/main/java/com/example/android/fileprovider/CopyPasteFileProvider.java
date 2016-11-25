@@ -156,7 +156,7 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
         final int lastDot = file.getName().lastIndexOf('.');
         if (lastDot >= 0) {
-            final String extension = file.getName().substring(lastDot);
+            final String extension = file.getName().substring(lastDot+1);
 
             if (extension.equals(mContext.getResources().getString(R.string.custom_extension))) {
                 Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered " + CustomContract.FileEntry.CONTENT_ITEM_TYPE);
@@ -191,42 +191,37 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
     }
 
     @Override //Copied from {@link android.support.v4.content.FileProvider}
-    public ParcelFileDescriptor openFile(Uri uri, String mode) throws FileNotFoundException {
+    public ParcelFileDescriptor openFile(Uri uri, String mode) {
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
         // ContentProvider has already checked granted permissions
+        return getParcelFileDescriptor(uri, mode);
+
+        //Should I use instead ?
+        //return openPipeHelper(uri, mimeTypes[0], opts, cursor, this);
+    }
+
+    private ParcelFileDescriptor getParcelFileDescriptor(Uri uri, String mode) {
         final File file = mStrategy.getFileForUri(uri);
-        final int fileMode = modeToMode(mode);
-        return ParcelFileDescriptor.open(file, fileMode);
+        try {
+            return ParcelFileDescriptor.open(file, modeToMode(mode));
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "File " + file.getName() + " not found" + e);
+            return null;
+        }
     }
 
     @Nullable
     @Override
     public AssetFileDescriptor openAssetFile(Uri uri, String mode) throws FileNotFoundException {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2]+"");
-        Cursor cursor = query(
-                uri,                    // The URI of a note
-                FILE_COLUMNS,   // Gets a projection containing the note's file name, size and text
-                null,                   // No WHERE clause, get all matching records
-                null,                   // Since there is no WHERE clause, no selection criteria
-                null                    // Use the default sort order (modification date,
-                // descending
-        );
-        // If the query fails or the cursor is empty, stop
-        if (cursor == null || !cursor.moveToFirst()) {
-            // If the cursor is empty, simply close the cursor and return
-            if (cursor != null) {
-                cursor.close();
-            }
-            // If the cursor is null, throw an exception
-            throw new FileNotFoundException("Unable to query " + uri);
-        }
-        // Start a new thread that pipes the stream data back to the caller.
-        return new AssetFileDescriptor(openPipeHelper(uri, null, null, cursor, this), 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
+        String mimetype = "text/plain"; //Default mimetype we decide to use in case no mimetype are specified by the calling app.
+        return openTypedAssetFile(uri, mimetype, null);
     }
 
     @Nullable
     @Override
     public AssetFileDescriptor openAssetFile(Uri uri, String mode, CancellationSignal signal) throws FileNotFoundException {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2]+"");
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
         return openAssetFile(uri, mode);
     }
 
@@ -246,12 +241,13 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
      */
     @Override
     public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2]+"");
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
 
         // Checks to see if the MIME type filter matches a supported MIME type.
         String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
         // If the MIME type is supported
         if (mimeTypes != null) {
+            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "Renvoyer un AssetFileDescriptor different pour chaque mimetype here");
             //Query if file is existing
             // Retrieves the note for this URI. Uses the query method defined for this provider,
             // rather than using the database query method.
@@ -273,7 +269,9 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
                 throw new FileNotFoundException("Unable to query " + uri);
             }
             // Start a new thread that pipes the stream data back to the caller.
-            return new AssetFileDescriptor(openPipeHelper(uri, mimeTypes[0], opts, cursor, this), 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+            ParcelFileDescriptor parcelFileDescritor = openPipeHelper(uri, mimeTypes[0], opts, cursor, this);
+            //ParcelFileDescriptor parcelFileDescritor = getParcelFileDescriptor(uri, mode);             //Should I use this instead ?
+            return new AssetFileDescriptor(parcelFileDescritor, 0, AssetFileDescriptor.UNKNOWN_LENGTH);
         }
         // If the MIME type is not supported, return a read-only handle to the file.
         return super.openTypedAssetFile(uri, mimeTypeFilter, opts);

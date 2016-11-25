@@ -2,16 +2,22 @@ package com.example.android.fileprovider;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -289,4 +295,150 @@ public class FileUtils {
         }
     }
 
+    public static Object coerceToMimetypeUsingOpenTypeAssetFile(Context context, Uri uri, String mimetype, String charset) {
+        if (uri == null) {
+            return "";
+        }
+        try {
+            AssetFileDescriptor assetFileDescriptor = context.getContentResolver().openTypedAssetFileDescriptor(uri, mimetype, null);
+
+            if (mimetype.equals("text/*")) { //If app requested a text. May crash because there is no actual test on mimetype
+                return getAssetFileDescriptorText(assetFileDescriptor, charset);
+            }
+
+            if (mimetype.equals("image/*")) {//If app requested an Image.  May crash because there is no actual test on mimetype
+                return BitmapFactory.decodeFileDescriptor(assetFileDescriptor.getFileDescriptor());
+            }
+            assetFileDescriptor.close();
+        } catch (IOException e) {
+            Log.e(TAG, "There was a problem reading file descriptor " + e);
+        }
+        return uri.toString();
+    }
+
+    public static Object coerceToMimetypeUsingOpenAssetFile(Context context, Uri uri, String mode, String mimetype, String charset) {
+        if (uri == null) {
+            return "";
+        }
+
+        try {
+            AssetFileDescriptor assetFileDescriptor = context.getContentResolver().openAssetFileDescriptor(uri, mode);
+
+            if (mimetype.equals("text/*")) { //If app requested a text. May crash because there is no actual test on mimetype
+                return getAssetFileDescriptorText(assetFileDescriptor, charset);
+            }
+
+            if (mimetype.equals("image/*")) {//If app requested an Image.  May crash because there is no actual test on mimetype
+                return BitmapFactory.decodeFileDescriptor(assetFileDescriptor.getFileDescriptor());
+            }
+            assetFileDescriptor.close();
+        } catch (IOException e) {
+            Log.e(TAG, "There was a problem reading file descriptor " + e);
+        }
+
+        return uri.toString();
+    }
+
+    public static Object coerceToMimetypeUsingOpenFile(Context context, Uri uri, String mode, String mimetype, String charset) {
+        if (uri == null) {
+            return "";
+        }
+        try {
+            ParcelFileDescriptor parcelFileDescriptor = context.getContentResolver().openFileDescriptor(uri, mode);
+
+            if (mimetype.equals("text/*")) { //If app requested a text. May crash because there is no actual test on mimetype
+                return getParcelFileDescriptorText(parcelFileDescriptor, charset);
+            }
+
+            if (mimetype.equals("image/*")) {//If app requested an Image.  May crash because there is no actual test on mimetype
+                return getParcelFileDescriptorImage(parcelFileDescriptor);
+            }
+            parcelFileDescriptor.close();
+        } catch (IOException e) {
+            Log.e(TAG, "There was a problem reading file descriptor " + e);
+        }
+
+        return uri.toString();// If we couldn't open the URI as a stream, then the URI will be used as a textual representation.
+    }
+
+
+    private static String getParcelFileDescriptorText(ParcelFileDescriptor parcelFileDescriptor, String charset) {
+        AssetFileDescriptor assetFileDescriptor = new AssetFileDescriptor(parcelFileDescriptor, 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+        return getAssetFileDescriptorText(assetFileDescriptor, charset);
+    }
+
+    private static String getAssetFileDescriptorText(AssetFileDescriptor assetFileDescriptor, String charset) {
+        FileInputStream stream = null;
+        try {
+            stream = assetFileDescriptor.createInputStream();
+            return FileUtils.readStream(stream, charset);
+        } catch (IOException e) {
+            Log.e(TAG, "There was a problem reading file descriptor " + e);
+            return null;
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
+
+    private static String readStream(FileInputStream stream, String charset) {
+        InputStreamReader reader = null;
+        try {
+            reader = new InputStreamReader(stream, charset);
+            StringBuilder builder = new StringBuilder(128);
+            char[] buffer = new char[8192];
+            int len;
+            while ((len = reader.read(buffer)) > 0) {
+                builder.append(buffer, 0, len);
+            }
+            return builder.toString();
+        } catch (IOException e) {
+            Log.e(TAG, "There was a problem reading file descriptor " + e);
+            return null;
+        }
+
+    }
+
+    private static Object getParcelFileDescriptorImage(ParcelFileDescriptor parcelFileDescriptor) {
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+        return image;
+    }
+
+
+    public static Object coerceToMimetypeUsingOpenInputStream(Context context, Uri uri, String mimetype) {
+        if (uri == null) {
+            return "";
+        }
+        FileInputStream stream = null;
+        try {
+            stream = (FileInputStream) context.getContentResolver().openInputStream(uri);
+
+            if (mimetype.equals("text/*")) { //If app requested a text. May crash because there is no actual test on mimetype
+                readStream(stream);
+            }
+
+            if (mimetype.equals("image/*")) {//If app requested an Image.  May crash because there is no actual test on mimetype
+                //streamToBitmap ? or we decide not to manage it
+            }
+
+        } catch (IOException e) {
+            // Something bad has happened.
+            Log.w("ClippedData", "Failure loading text", e);
+            return e.toString();
+
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+        return uri.toString();
+    }
 }
