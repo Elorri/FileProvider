@@ -311,8 +311,18 @@ public class FileUtils {
             }
             assetFileDescriptor.close();
         } catch (IOException e) {
-            Log.e(TAG, "There was a problem reading file descriptor " + e);
+            Log.e("FP",Thread.currentThread().getStackTrace()[2] +"");
+            //Log.e(TAG, "There was a problem reading file descriptor " + e);
+            e.printStackTrace();
         }
+//        finally {
+//            if (stream != null) {
+//                try {
+//                    stream.close();
+//                } catch (IOException e) {
+//                }
+//            }
+//        }
         return uri.toString();
     }
 
@@ -334,6 +344,7 @@ public class FileUtils {
             assetFileDescriptor.close();
         } catch (IOException e) {
             Log.e(TAG, "There was a problem reading file descriptor " + e);
+            e.printStackTrace();
         }
 
         return uri.toString();
@@ -356,6 +367,7 @@ public class FileUtils {
             parcelFileDescriptor.close();
         } catch (IOException e) {
             Log.e(TAG, "There was a problem reading file descriptor " + e);
+            e.printStackTrace();
         }
 
         return uri.toString();// If we couldn't open the URI as a stream, then the URI will be used as a textual representation.
@@ -369,19 +381,14 @@ public class FileUtils {
 
     private static String getAssetFileDescriptorText(AssetFileDescriptor assetFileDescriptor, String charset) {
         FileInputStream stream = null;
+        Log.e(TAG, "The stream should be closed by the parent");
         try {
             stream = assetFileDescriptor.createInputStream();
             return FileUtils.readStream(stream, charset);
         } catch (IOException e) {
             Log.e(TAG, "There was a problem reading file descriptor " + e);
+            e.printStackTrace();
             return null;
-        } finally {
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                }
-            }
         }
     }
 

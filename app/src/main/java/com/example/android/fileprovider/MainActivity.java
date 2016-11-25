@@ -593,9 +593,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void paste(View view) {
         pasteUsingOpenTypedAsset();
-        pasteUsingOpenAsset();
-        pasteUsingOpenFile();
-        pasteUsingOpenInputStream();
+//        pasteUsingOpenAsset();
+//        pasteUsingOpenFile();
+//        pasteUsingOpenInputStream();
     }
 
     public void pasteUsingOpenTypedAsset() {
@@ -605,7 +605,8 @@ public class MainActivity extends AppCompatActivity {
             ClipData.Item item = clip.getItemAt(0);
             Uri uri = item.getUri();
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            Object text = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "text/*", "UTF-8");
+            //Object text = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "text/*", "UTF-8");
+            Object text = item.coerceToText(this);
             Object bitmap = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "image/*", null);
             setViews((TextView) findViewById(R.id.copied_text1), (ImageView) findViewById(R.id.copied_image1), text, bitmap);
         }

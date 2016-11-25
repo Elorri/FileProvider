@@ -269,8 +269,8 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
                 throw new FileNotFoundException("Unable to query " + uri);
             }
             // Start a new thread that pipes the stream data back to the caller.
-            ParcelFileDescriptor parcelFileDescritor = openPipeHelper(uri, mimeTypes[0], opts, cursor, this);
-            //ParcelFileDescriptor parcelFileDescritor = getParcelFileDescriptor(uri, mode);             //Should I use this instead ?
+           ParcelFileDescriptor parcelFileDescritor = openPipeHelper(uri, mimeTypes[0], opts, cursor, this);
+           // ParcelFileDescriptor parcelFileDescritor = getParcelFileDescriptor(uri, "r");             //Should I use this instead ?
             return new AssetFileDescriptor(parcelFileDescritor, 0, AssetFileDescriptor.UNKNOWN_LENGTH);
         }
         // If the MIME type is not supported, return a read-only handle to the file.
