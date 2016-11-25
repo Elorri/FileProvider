@@ -1,6 +1,7 @@
 package com.example.android.fileprovider;
 
 
+import android.content.ClipDescription;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,8 +14,10 @@ import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.Environment;
 import android.os.ParcelFileDescriptor;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
@@ -36,9 +39,9 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 
 
 /**
- * This a copy of FileProvider {@link android.support.v4.content.FileProvider} with some custom modifications.
+ * This a copyPlainText of FileProvider {@link android.support.v4.content.FileProvider} with some custom modifications.
  */
-//We chose to make a copy to get easy access to private field mStrategy
+//We chose to make a copyPlainText to get easy access to private field mStrategy
 public class CopyPasteFileProvider extends ContentProvider implements ContentProvider.PipeDataWriter<Cursor> {
 
     private static final String META_DATA_FILE_PROVIDER_PATHS = "android.support.FILE_PROVIDER_PATHS";
@@ -147,25 +150,27 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
     @Override
     public String getType(Uri uri) {
+        Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "uri " + uri);
+        // ContentProvider has already checked granted permissions
+        final File file = mStrategy.getFileForUri(uri);
 
-        switch (sUriMatcher.match(uri)) {
-            case CUSTOM_FILE_URI:
-                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "CUSTOM_FILE_URI " + CustomContract.FileEntry.CONTENT_ITEM_TYPE);
+        final int lastDot = file.getName().lastIndexOf('.');
+        if (lastDot >= 0) {
+            final String extension = file.getName().substring(lastDot);
+
+            if (extension.equals(mContext.getResources().getString(R.string.custom_extension))) {
+                Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered " + CustomContract.FileEntry.CONTENT_ITEM_TYPE);
                 return CustomContract.FileEntry.CONTENT_ITEM_TYPE;
-            default:
-                // ContentProvider has already checked granted permissions
-                final File file = mStrategy.getFileForUri(uri);
-
-                final int lastDot = file.getName().lastIndexOf('.');
-                if (lastDot >= 0) {
-                    final String extension = file.getName().substring(lastDot + 1);
-                    final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-                    if (mime != null) {
-                        return mime;
-                    }
-                }
-                return "application/octet-stream";
+            }
+            final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            if (mime != null) {
+                Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered " + mime);
+                return mime;
+            }
         }
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered application/octet-stream");
+        return "application/octet-stream";
+
     }
 
     @Override
@@ -191,6 +196,145 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
         final File file = mStrategy.getFileForUri(uri);
         final int fileMode = modeToMode(mode);
         return ParcelFileDescriptor.open(file, fileMode);
+    }
+
+    @Nullable
+    @Override
+    public AssetFileDescriptor openAssetFile(Uri uri, String mode) throws FileNotFoundException {
+        Log.e("FP", Thread.currentThread().getStackTrace()[2]+"");
+        Cursor cursor = query(
+                uri,                    // The URI of a note
+                FILE_COLUMNS,   // Gets a projection containing the note's file name, size and text
+                null,                   // No WHERE clause, get all matching records
+                null,                   // Since there is no WHERE clause, no selection criteria
+                null                    // Use the default sort order (modification date,
+                // descending
+        );
+        // If the query fails or the cursor is empty, stop
+        if (cursor == null || !cursor.moveToFirst()) {
+            // If the cursor is empty, simply close the cursor and return
+            if (cursor != null) {
+                cursor.close();
+            }
+            // If the cursor is null, throw an exception
+            throw new FileNotFoundException("Unable to query " + uri);
+        }
+        // Start a new thread that pipes the stream data back to the caller.
+        return new AssetFileDescriptor(openPipeHelper(uri, null, null, cursor, this), 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+    }
+
+    @Nullable
+    @Override
+    public AssetFileDescriptor openAssetFile(Uri uri, String mode, CancellationSignal signal) throws FileNotFoundException {
+        Log.e("FP", Thread.currentThread().getStackTrace()[2]+"");
+        return openAssetFile(uri, mode);
+    }
+
+    /**
+     * Returns a stream of data for each supported stream type. This method does a query on the
+     * incoming URI, then uses
+     * {@link android.content.ContentProvider#openPipeHelper(Uri, String, Bundle, Object,
+     * PipeDataWriter)} to start another thread in which to convert the data into a stream.
+     *
+     * @param uri            The URI pattern that points to the data stream
+     * @param mimeTypeFilter A String containing a MIME type. This method tries to get a stream of
+     *                       data with this MIME type.
+     * @param opts           Additional options supplied by the caller.  Can be interpreted as
+     *                       desired by the content provider.
+     * @return AssetFileDescriptor A handle to the file.
+     * @throws FileNotFoundException if there is no file associated with the incoming URI.
+     */
+    @Override
+    public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
+        Log.e("FP", Thread.currentThread().getStackTrace()[2]+"");
+
+        // Checks to see if the MIME type filter matches a supported MIME type.
+        String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
+        // If the MIME type is supported
+        if (mimeTypes != null) {
+            //Query if file is existing
+            // Retrieves the note for this URI. Uses the query method defined for this provider,
+            // rather than using the database query method.
+            Cursor cursor = query(
+                    uri,                    // The URI of a note
+                    FILE_COLUMNS,   // Gets a projection containing the note's file name, size and text
+                    null,                   // No WHERE clause, get all matching records
+                    null,                   // Since there is no WHERE clause, no selection criteria
+                    null                    // Use the default sort order (modification date,
+                    // descending
+            );
+            // If the query fails or the cursor is empty, stop
+            if (cursor == null || !cursor.moveToFirst()) {
+                // If the cursor is empty, simply close the cursor and return
+                if (cursor != null) {
+                    cursor.close();
+                }
+                // If the cursor is null, throw an exception
+                throw new FileNotFoundException("Unable to query " + uri);
+            }
+            // Start a new thread that pipes the stream data back to the caller.
+            return new AssetFileDescriptor(openPipeHelper(uri, mimeTypes[0], opts, cursor, this), 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+        }
+        // If the MIME type is not supported, return a read-only handle to the file.
+        return super.openTypedAssetFile(uri, mimeTypeFilter, opts);
+    }
+
+    /**
+     * Returns the types of available data streams.  URIs to specific notes are supported.
+     * The application can convert such a note to a plain text stream.
+     *
+     * @param uri            the URI to analyze
+     * @param mimeTypeFilter The MIME type to check for. This method only returns a data stream
+     *                       type for MIME types that match the filter. Currently, only text/plain MIME types match.
+     * @return a data stream MIME type. Currently, only text/plan is returned.
+     * @throws IllegalArgumentException if the URI pattern doesn't match any supported patterns.
+     */
+    @Override
+    public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "getStreamTypes " + getType(uri));
+        ClipDescription clipItemMimeType = new ClipDescription(null, new String[]{getType(uri)});
+        return clipItemMimeType.filterMimeTypes(mimeTypeFilter);
+
+//        switch (sUriMatcher.match(uri)) {
+//            case CUSTOM_FILE_URI:
+//                return CustomContract.CLIP_DESC_MIMETYPES_HTML.filterMimeTypes(mimeTypeFilter);
+//            default:
+//                throw new IllegalArgumentException("Unknown URI " + uri);
+//        }
+    }
+
+
+    /**
+     * Implementation of {@link android.content.ContentProvider.PipeDataWriter}
+     * to perform the actual work of converting the data in one of cursors to a
+     * stream of data for the client to read.
+     */
+    @Override
+    public void writeDataToPipe(ParcelFileDescriptor output, Uri uri, String mimeType, Bundle opts, Cursor cursor) {
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "See if we do different stream import depending on the data type given");
+
+        Log.e("FP", "output " + output);
+
+        FileOutputStream out = new FileOutputStream(output.getFileDescriptor());
+        PrintWriter printWriter = null;
+        String charset = "UTF-8";
+        try {
+            printWriter = new PrintWriter(new OutputStreamWriter(out, charset));
+            String text = cursor.getString(COL_TEXT);
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "text" + text);
+            printWriter.println(text);
+        } catch (UnsupportedEncodingException e) {
+            Log.w(TAG, "There was a problem encoding text using " + charset, e);
+        } finally {
+            cursor.close();
+            if (printWriter != null) {
+                printWriter.flush();
+            }
+            try {
+                out.close();
+            } catch (IOException e) {
+            }
+        }
     }
 
     //Copied from {@link android.support.v4.content.FileProvider}
@@ -413,107 +557,5 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
         final Object[] result = new Object[newLength];
         System.arraycopy(original, 0, result, 0, newLength);
         return result;
-    }
-
-
-    /**
-     * Returns a stream of data for each supported stream type. This method does a query on the
-     * incoming URI, then uses
-     * {@link android.content.ContentProvider#openPipeHelper(Uri, String, Bundle, Object,
-     * PipeDataWriter)} to start another thread in which to convert the data into a stream.
-     *
-     * @param uri            The URI pattern that points to the data stream
-     * @param mimeTypeFilter A String containing a MIME type. This method tries to get a stream of
-     *                       data with this MIME type.
-     * @param opts           Additional options supplied by the caller.  Can be interpreted as
-     *                       desired by the content provider.
-     * @return AssetFileDescriptor A handle to the file.
-     * @throws FileNotFoundException if there is no file associated with the incoming URI.
-     */
-    @Override
-    public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
-        // Checks to see if the MIME type filter matches a supported MIME type.
-        String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
-        // If the MIME type is supported
-        if (mimeTypes != null) {
-            //Query if file is existing
-            // Retrieves the note for this URI. Uses the query method defined for this provider,
-            // rather than using the database query method.
-            Cursor cursor = query(
-                    uri,                    // The URI of a note
-                    FILE_COLUMNS,   // Gets a projection containing the note's file name, size and text
-                    null,                   // No WHERE clause, get all matching records
-                    null,                   // Since there is no WHERE clause, no selection criteria
-                    null                    // Use the default sort order (modification date,
-                    // descending
-            );
-            // If the query fails or the cursor is empty, stop
-            if (cursor == null || !cursor.moveToFirst()) {
-                // If the cursor is empty, simply close the cursor and return
-                if (cursor != null) {
-                    cursor.close();
-                }
-                // If the cursor is null, throw an exception
-                throw new FileNotFoundException("Unable to query " + uri);
-            }
-            // Start a new thread that pipes the stream data back to the caller.
-            return new AssetFileDescriptor(openPipeHelper(uri, mimeTypes[0], opts, cursor, this), 0, AssetFileDescriptor.UNKNOWN_LENGTH);
-        }
-        // If the MIME type is not supported, return a read-only handle to the file.
-        return super.openTypedAssetFile(uri, mimeTypeFilter, opts);
-    }
-
-    /**
-     * Returns the types of available data streams.  URIs to specific notes are supported.
-     * The application can convert such a note to a plain text stream.
-     *
-     * @param uri            the URI to analyze
-     * @param mimeTypeFilter The MIME type to check for. This method only returns a data stream
-     *                       type for MIME types that match the filter. Currently, only text/plain MIME types match.
-     * @return a data stream MIME type. Currently, only text/plan is returned.
-     * @throws IllegalArgumentException if the URI pattern doesn't match any supported patterns.
-     */
-    @Override
-    public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
-        switch (sUriMatcher.match(uri)) {
-            case CUSTOM_FILE_URI:
-                return CustomContract.CLIP_DESC_MIMETYPES.filterMimeTypes(mimeTypeFilter);
-            default:
-                throw new IllegalArgumentException("Unknown URI " + uri);
-        }
-    }
-
-
-    /**
-     * Implementation of {@link android.content.ContentProvider.PipeDataWriter}
-     * to perform the actual work of converting the data in one of cursors to a
-     * stream of data for the client to read.
-     */
-    @Override
-    public void writeDataToPipe(ParcelFileDescriptor output, Uri uri, String mimeType, Bundle opts, Cursor cursor) {
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "See if we do different stream import depending on the data type given");
-
-        Log.e("FP", "output " + output);
-
-        FileOutputStream out = new FileOutputStream(output.getFileDescriptor());
-        PrintWriter printWriter = null;
-        String charset = "UTF-8";
-        try {
-            printWriter = new PrintWriter(new OutputStreamWriter(out, charset));
-            String text = cursor.getString(COL_TEXT);
-            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "text" + text);
-            printWriter.println(text);
-        } catch (UnsupportedEncodingException e) {
-            Log.w(TAG, "There was a problem encoding text using " + charset, e);
-        } finally {
-            cursor.close();
-            if (printWriter != null) {
-                printWriter.flush();
-            }
-            try {
-                out.close();
-            } catch (IOException e) {
-            }
-        }
     }
 }

@@ -3,7 +3,6 @@ package com.example.android.fileprovider;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -52,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mImageView;
     private TextView mTextView;
 
-    private Uri mUri;
+    private Uri mImageUri;
     private Bitmap mBitmap;
 
     private boolean isGalleryPicture = false;
@@ -138,9 +137,9 @@ public class MainActivity extends AppCompatActivity {
             //Same process is used by FileManager when browsing file, it looks if an app has
             // registered the path where the file is. Then it query the content resolver getType
             // method to get the Mimetype.
-            mUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, file);
+            mImageUri = FileProvider.getUriForFile(this, FILE_PROVIDER_AUTHORITY, file);
             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, mUri);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageUri);
 
             if (intent.resolveActivity(getPackageManager()) != null) {
                 startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
@@ -164,20 +163,20 @@ public class MainActivity extends AppCompatActivity {
             // provided to this method as a parameter.  Pull that uri using "resultData.getData()"
 
             if (resultData != null) {
-                mUri = resultData.getData();
-                Log.i(LOG_TAG, "Uri: " + mUri.toString());
+                mImageUri = resultData.getData();
+                Log.i(LOG_TAG, "Uri: " + mImageUri.toString());
 
-                mTextView.setText(mUri.toString());
-                mBitmap = getBitmapFromUri(mUri);
+                mTextView.setText(mImageUri.toString());
+                mBitmap = getBitmapFromUri(mImageUri);
                 mImageView.setImageBitmap(mBitmap);
 
                 isGalleryPicture = true;
             }
         } else if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            Log.i(LOG_TAG, "Uri: " + mUri.toString());
+            Log.i(LOG_TAG, "Uri: " + mImageUri.toString());
 
-            mTextView.setText(mUri.toString());
-            mBitmap = getBitmapFromUri(mUri);
+            mTextView.setText(mImageUri.toString());
+            mBitmap = getBitmapFromUri(mImageUri);
             mImageView.setImageBitmap(mBitmap);
 
             isGalleryPicture = false;
@@ -213,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Recommended option found here: https://github.com/crlsndrsjmnz/MyShareImageExample
     private void sedEmailOpt1() {
-        if (mUri != null) {
+        if (mImageUri != null) {
             Uri imageUri = getShareableImageUri();
 
             String subject = "URI Example";
@@ -246,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Recommended option found here: https://github.com/crlsndrsjmnz/MyShareImageExample
     private void sedEmailOpt2() {
-        if (mUri != null) {
+        if (mImageUri != null) {
             Uri imageUri = getShareableImageUri();
 
             String subject = "URI Example";
@@ -293,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
                     this, FILE_PROVIDER_AUTHORITY, imageFile);
 
         } else {
-            imageUri = mUri;
+            imageUri = mImageUri;
         }
 
         return imageUri;
@@ -306,7 +305,7 @@ public class MainActivity extends AppCompatActivity {
          * and size.
          */
         Cursor returnCursor =
-                getContentResolver().query(mUri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
+                getContentResolver().query(mImageUri, new String[]{OpenableColumns.DISPLAY_NAME}, null, null, null);
 
         /*
          * Get the column indexes of the data in the Cursor,
@@ -429,12 +428,12 @@ public class MainActivity extends AppCompatActivity {
             File file = null;
             File local = null;
 
-            if (size == null) { //We copy our stream to a temp folder and check the validity of the file.
+            if (size == null) { //We copyPlainText our stream to a temp folder and check the validity of the file.
                 directory = FileUtils.getAppTempDir(this, "_nebo");
                 file = FileUtils.getUniqueFile(directory, fullname);
                 local = FileUtils.streamToFile(directory, file, in);
                 size = local.length();
-                Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "We copy our stream to a temp folder and check the validity of the file");
+                Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "We copyPlainText our stream to a temp folder and check the validity of the file");
                 if (!isFileValid(fullname, size)) {
                     local.delete();
                     Toast.makeText(mContext, "File can't be imported", Toast.LENGTH_LONG).show();
@@ -504,29 +503,72 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    public void copy(View view) {
-
-        File file = createStringFile("Hello bla bla bla");
+    public void copyPlainText(View view) {
+        File file = createStringFile("Hello bla bla bla 1", ".txt");
         Uri uri = FileProvider.getUriForFile(mContext, CustomContract.CONTENT_AUTHORITY, file);
-        Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
+        Log.e("NE", Thread.currentThread().getStackTrace()[2] + "uri" + uri);
 
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
 
         // Copies the text URI to the clipboard. In effect, this copies the text itself
         ClipData clipData = ClipData.newUri(   // new clipboard item holding a URI
-                getContentResolver(),               // resolver to retrieve URI info
-                "clipDescriptionLabel",          // label for the clip (description ?)
+                getContentResolver(),               // resolver to retrieve URI info like the mimetype
+                null,          // label for the clip (description ?)
                 uri);// the URI
 
-        ClipData.Item clipDataItem= new ClipData.Item(uri);
-        clipData.addItem(clipDataItem);
+//        ClipData.Item clipDataItem= new ClipData.Item(uri);
+//        clipData.addItem(clipDataItem);
 
         clipboard.setPrimaryClip(clipData);
     }
 
-    private File createStringFile(String text) {
+    public void copyHtmlText(View view) {
+        File file = createStringFile("<html><body>Hello bla bla bla 1</body></html>", ".html");
+        Uri uri = FileProvider.getUriForFile(mContext, CustomContract.CONTENT_AUTHORITY, file);
+        Log.e("NE", Thread.currentThread().getStackTrace()[2] + "uri" + uri);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clipData = ClipData.newUri(   // new clipboard item holding a URI
+                getContentResolver(),               // resolver to retrieve URI info like the mimetype
+                null,          // label for the clip (description ?)
+                uri);// the URI
+        clipboard.setPrimaryClip(clipData);
+    }
+
+    public void copyImage(View view) {
+        Log.e("NE", Thread.currentThread().getStackTrace()[2] + "mImageUri" + mImageUri);
+
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clipData = ClipData.newUri(   // new clipboard item holding a URI
+                getContentResolver(),               // resolver to retrieve URI info like the mimetype
+                null,          // label for the clip (description ?)
+                mImageUri);// the image URI
+        clipboard.setPrimaryClip(clipData);
+    }
+
+    public void copyAllTypes(View view) {
+        File file = createStringFile("Hello bla bla bla 1", ".txt");
+        Uri uri = FileProvider.getUriForFile(mContext, CustomContract.CONTENT_AUTHORITY, file);
+        Log.e("NE", Thread.currentThread().getStackTrace()[2] + "uri" + uri);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clipData = ClipData.newUri(   // new clipboard item holding a URI
+                getContentResolver(),               // resolver to retrieve URI info like the mimetype
+                null,          // label for the clip (description ?)
+                uri);// the URI
+
+        file = createStringFile("<html><body>Hello bla bla bla 1</body></html>", ".html");
+        uri = FileProvider.getUriForFile(mContext, CustomContract.CONTENT_AUTHORITY, file);
+        ClipData.Item clipDataItem = new ClipData.Item(uri);
+        clipData.addItem(clipDataItem);
+
+        ClipData.Item clipDataItem2 = new ClipData.Item(mImageUri);
+        clipData.addItem(clipDataItem2);
+
+        clipboard.setPrimaryClip(clipData);
+    }
+
+    private File createStringFile(String text, String extension) {
         File directory = FileUtils.getAppDir(mContext, ".tmp");
-        File file = FileUtils.getUniqueFile(directory, "hello.txt");
+        File file = FileUtils.getUniqueFile(directory, "hello" + extension);
 
         try (PrintWriter out = new PrintWriter(file)) {
             out.println(text);
@@ -537,18 +579,69 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void paste(View view) {
+    public void copyCustom(View view) {
+        File file = createStringFile("Hello custom bla bla 1", ".custom");
+        Uri uri = FileProvider.getUriForFile(mContext, CustomContract.CONTENT_AUTHORITY, file);
+        Log.e("NE", Thread.currentThread().getStackTrace()[2] + "uri" + uri);
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        // Gets a content resolver instance
-        ContentResolver contentResolver = getContentResolver();
-        // Gets the clipboard data from the clipboard
+        ClipData clipData = ClipData.newUri(   // new clipboard item holding a URI
+                getContentResolver(),               // resolver to retrieve URI info like the mimetype
+                null,          // label for the clip (description ?)
+                uri);// the URI
+        clipboard.setPrimaryClip(clipData);
+    }
+
+
+    public void pasteAsStreamTextUsingOpenTypedAsset(View view) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
-            ClipData.Item item = clip.getItemAt(1);// Gets the first item from the clipboard data
+            ClipData.Item item = clip.getItemAt(0);// Gets the first item from the clipboard data
             Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            contentResolver.query(uri, null, null, null, null, null);
-            ((TextView)findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
+            try {
+                InputStream stream = getContentResolver().openInputStream(uri);
+                String text = FileUtils.readStream(stream);
+                ((TextView) findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void pasteAsText(View view) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = clipboard.getPrimaryClip();
+        if (clip != null) {
+            ClipData.Item item = clip.getItemAt(0);// Gets the first item from the clipboard data
+            Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
+            Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
+            ((TextView) findViewById(R.id.copied_text)).setText(item.coerceToText(mContext));
+        }
+    }
+
+
+
+
+
+
+    public void pasteImage(View view) {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = clipboard.getPrimaryClip();
+        if (clip != null) {
+            ClipData.Item item = clip.getItemAt(0);// Gets the first item from the clipboard data
+            Uri uri = item.getUri();// Tries to get the item's contents as a URI pointing to a note
+            Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
+            ParcelFileDescriptor parcelFileDescriptor = null;
+            try {
+                parcelFileDescriptor = getContentResolver().openFileDescriptor(uri, "r");
+                FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+                Bitmap image = BitmapFactory.decodeFileDescriptor(fileDescriptor);
+                parcelFileDescriptor.close();
+                mImageView.setImageBitmap(image);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

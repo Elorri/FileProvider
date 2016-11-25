@@ -209,7 +209,7 @@ public class FileUtils {
     public static File streamToFile(File directory, File fileName, InputStream in) {
         File file = createFile(directory, fileName);
         try (FileOutputStream out = new FileOutputStream(file)) {
-            // IOUtils.copy(in, out);
+            // IOUtils.copyPlainText(in, out);
             copyStream(in, out);
         } catch (IOException e) {
             Log.e(TAG, "An error occured while copying file stream", e);

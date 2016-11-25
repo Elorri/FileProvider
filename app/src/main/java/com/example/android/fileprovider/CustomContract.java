@@ -21,7 +21,10 @@ public class CustomContract {
     /**
      * This describes the MIME types supported for the data copied in the clipboard. Means mimetype pasting app will be able to use.
      */
-    static ClipDescription CLIP_DESC_MIMETYPES = new ClipDescription(null, new String[]{ClipDescription.MIMETYPE_TEXT_PLAIN});
+    static ClipDescription CLIP_DESC_MIMETYPES = new ClipDescription("text", new String[]{ClipDescription.MIMETYPE_TEXT_PLAIN});
+    static ClipDescription CLIP_DESC_MIMETYPES_HTML = new ClipDescription("html", new String[]{ClipDescription.MIMETYPE_TEXT_HTML});
+    static ClipDescription CLIP_DESC_MIMETYPES_IMAGES = new ClipDescription("image", new String[]{"image/png"});
+    static ClipDescription CLIP_DESC_MIMETYPES_ALL = new ClipDescription("all", new String[]{ClipDescription.MIMETYPE_TEXT_PLAIN, ClipDescription.MIMETYPE_TEXT_HTML, "image/png"});
 
 
     public static final class FileEntry implements OpenableColumns {

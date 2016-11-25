@@ -30,12 +30,6 @@
         android:onClick="takePicture"
         android:text="@string/take_picture"/>
 
-    <ImageView
-        android:id="@+id/image"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:scaleType="centerCrop"/>
-
     <Button
         android:id="@+id/fileManager"
         android:layout_width="wrap_content"
@@ -58,21 +52,114 @@
         android:text="Import .custom"/>
 
     <Button
-        android:id="@+id/copy"
+        android:id="@+id/copyPlainText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="copy"
-        android:text="Copy text 'Hello'"/>
+        android:onClick="copyPlainText"
+        android:text="Copy text plain text 'Hello.txt'"/>
 
     <Button
-        android:id="@+id/paste"
+        android:id="@+id/copyHtmlText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:onClick="paste"
-        android:text="Paste"/>
+        android:onClick="copyHtmlText"
+        android:text="Copy text html text 'Hello.html'"/>
+
+    <Button
+        android:id="@+id/copyImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="copyImage"
+        android:text="Copy image png selected"/>
+
+    <Button
+        android:id="@+id/copyCustom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="copyCustom"
+        android:text="Copy .custom"/>
+
+    <Button
+        android:id="@+id/copyAllTypes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="copyAllTypes"
+        android:text="Copy AllTypes"/>
+
+    <Button
+        android:id="@+id/pasteAsStreamTextUsingOpenTypedAsset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteAsStreamTextUsingOpenTypedAsset"
+        android:text="PasteAsText using openTypedAsset"/>
+
+    <Button
+        android:id="@+id/pasteAsStreamTextUsingOpenAsset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteAsStreamTextUsingOpenAsset"
+        android:text="PasteAsText using openAsset"/>
+
+    <Button
+        android:id="@+id/pasteAsStreamTextUsingOpenFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteAsStreamTextUsingOpenFile"
+        android:text="PasteAsText using openFile"/>
+
+    <Button
+        android:id="@+id/pasteAsStreamHtmlUsingOpenTypedAsset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteAsStreamHtmlUsingOpenTypedAsset"
+        android:text="PasteAsHtml using openTypedAsset"/>
+
+    <Button
+        android:id="@+id/pasteAsStreamHtmlUsingOpenAsset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteAsStreamHtmlUsingOpenAsset"
+        android:text="PasteAsHtml using openAsset"/>
+
+    <Button
+        android:id="@+id/pasteAsStreamHtmlUsingOpenFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteAsStreamHtmlUsingOpenFile"
+        android:text="PasteAsHtml using openFile"/>
+
+    <Button
+        android:id="@+id/pasteImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteImage"
+        android:text="Paste Image"/>
+
+    <Button
+        android:id="@+id/pasteCustom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pasteImage"
+        android:text="Paste Custom"/>
 
     <TextView
         android:id="@+id/copied_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <TextView
+        android:id="@+id/copied_html"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:scaleType="centerCrop"/>
+
+    <TextView
+        android:id="@+id/copied_custom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
