@@ -311,18 +311,10 @@ public class FileUtils {
             }
             assetFileDescriptor.close();
         } catch (IOException e) {
-            Log.e("FP",Thread.currentThread().getStackTrace()[2] +"");
+            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
             //Log.e(TAG, "There was a problem reading file descriptor " + e);
             e.printStackTrace();
         }
-//        finally {
-//            if (stream != null) {
-//                try {
-//                    stream.close();
-//                } catch (IOException e) {
-//                }
-//            }
-//        }
         return uri.toString();
     }
 
@@ -381,7 +373,6 @@ public class FileUtils {
 
     private static String getAssetFileDescriptorText(AssetFileDescriptor assetFileDescriptor, String charset) {
         FileInputStream stream = null;
-        Log.e(TAG, "The stream should be closed by the parent");
         try {
             stream = assetFileDescriptor.createInputStream();
             return FileUtils.readStream(stream, charset);
@@ -389,6 +380,13 @@ public class FileUtils {
             Log.e(TAG, "There was a problem reading file descriptor " + e);
             e.printStackTrace();
             return null;
+        } finally {
+            if (stream != null) {
+                try {
+                    stream.close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
 

@@ -41,7 +41,7 @@ import static org.xmlpull.v1.XmlPullParser.START_TAG;
 /**
  * This a copyPlainText of FileProvider {@link android.support.v4.content.FileProvider} with some custom modifications.
  */
-//We chose to make a copyPlainText to get easy access to private field mStrategy
+//We chose to make a FileProvider to get easy access to private field mStrategy
 public class CopyPasteFileProvider extends ContentProvider implements ContentProvider.PipeDataWriter<Cursor> {
 
     private static final String META_DATA_FILE_PROVIDER_PATHS = "android.support.FILE_PROVIDER_PATHS";
@@ -156,7 +156,7 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
         final int lastDot = file.getName().lastIndexOf('.');
         if (lastDot >= 0) {
-            final String extension = file.getName().substring(lastDot+1);
+            final String extension = file.getName().substring(lastDot + 1);
 
             if (extension.equals(mContext.getResources().getString(R.string.custom_extension))) {
                 Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered " + CustomContract.FileEntry.CONTENT_ITEM_TYPE);
@@ -241,10 +241,11 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
      */
     @Override
     public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
-
         // Checks to see if the MIME type filter matches a supported MIME type.
         String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
+
+        if (mimeTypes != null)
+            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimeTypes in common" + mimeTypes[0]);
         // If the MIME type is supported
         if (mimeTypes != null) {
             Log.e("FP", Thread.currentThread().getStackTrace()[2] + "Renvoyer un AssetFileDescriptor different pour chaque mimetype here");
@@ -269,10 +270,13 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
                 throw new FileNotFoundException("Unable to query " + uri);
             }
             // Start a new thread that pipes the stream data back to the caller.
-           ParcelFileDescriptor parcelFileDescritor = openPipeHelper(uri, mimeTypes[0], opts, cursor, this);
-           // ParcelFileDescriptor parcelFileDescritor = getParcelFileDescriptor(uri, "r");             //Should I use this instead ?
+            // ParcelFileDescriptor parcelFileDescritor = openPipeHelper(uri, mimeTypes[0], opts,                     cursor, this);
+            ParcelFileDescriptor parcelFileDescritor = getParcelFileDescriptor(uri, "r");             //Should I use this instead ?
+
+            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "return image or text real data");
             return new AssetFileDescriptor(parcelFileDescritor, 0, AssetFileDescriptor.UNKNOWN_LENGTH);
         }
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "return a read-only handle to the file");
         // If the MIME type is not supported, return a read-only handle to the file.
         return super.openTypedAssetFile(uri, mimeTypeFilter, opts);
     }
@@ -319,7 +323,7 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
         try {
             printWriter = new PrintWriter(new OutputStreamWriter(out, charset));
             String text = cursor.getString(COL_TEXT);
-            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "text" + text);
+            //Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "text" + text);
             printWriter.println(text);
         } catch (UnsupportedEncodingException e) {
             Log.w(TAG, "There was a problem encoding text using " + charset, e);

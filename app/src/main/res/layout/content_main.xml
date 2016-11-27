@@ -14,6 +14,7 @@
         tools:context=".MainActivity"
         tools:showIn="@layout/activity_main">
 
+        <View android:layout_width="match_parent" android:layout_height="100dp"/>
         <Button
             android:id="@+id/select_image"
             android:layout_width="match_parent"
@@ -131,6 +132,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
+            <TextView
+                android:id="@+id/copied_image_text1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
             <ImageView
                 android:id="@+id/copied_image1"
                 android:layout_width="100dp"
@@ -147,6 +153,11 @@
 
             <TextView
                 android:id="@+id/copied_text2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/copied_image_text2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
@@ -168,6 +179,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
+            <TextView
+                android:id="@+id/copied_image_text3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
             <ImageView
                 android:id="@+id/copied_image3"
                 android:layout_width="100dp"
@@ -183,6 +199,11 @@
 
             <TextView
                 android:id="@+id/copied_text4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/copied_image_text4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
