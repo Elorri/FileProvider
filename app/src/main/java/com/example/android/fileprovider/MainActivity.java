@@ -285,7 +285,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (isGalleryPicture) {
             String filename = getFilePath();
-            saveBitmapToFile(getCacheDir(), filename, mBitmap,Bitmap.CompressFormat.JPEG, 100);
+            saveBitmapToFile(getCacheDir(), filename, mBitmap, Bitmap.CompressFormat.JPEG, 100);
             File imageFile = new File(getCacheDir(), filename);
 
             imageUri = FileProvider.getUriForFile(
@@ -593,30 +593,31 @@ public class MainActivity extends AppCompatActivity {
 
     public void paste(View view) {
         pasteUsingOpenTypedAsset();
-        pasteUsingOpenAsset();
-        pasteUsingOpenFile();
-        pasteUsingOpenInputStream();
+//        pasteUsingOpenAsset();
+//        pasteUsingOpenFile();
+//        pasteUsingOpenInputStream();
     }
 
     public void pasteUsingOpenTypedAsset() {
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = clipboard.getPrimaryClip();
         if (clip != null) {
             ClipData.Item item = clip.getItemAt(0);
             Uri uri = item.getUri();
-            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "uri "+uri);
+            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "uri " + uri);
 
 //            Object text = item.coerceToText(this);
 //            Object bitmap = null;
 //            Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
 //            Log.e("NE", Thread.currentThread().getStackTrace()[2] + "text " + text);
 
-            Object text = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "text/*", "UTF-8");
+            // Object text = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "text/*",                     "UTF-8");
             Object bitmap = FileUtils.coerceToMimetypeUsingOpenTypeAssetFile(this, uri, "image/*", null);
-            setViews((TextView) findViewById(R.id.copied_text1),
-                    (TextView) findViewById(R.id.copied_image_text1),
-                    (ImageView) findViewById(R.id.copied_image1),
-                    text, bitmap);
+            ((ImageView) findViewById(R.id.copied_image1)).setImageBitmap((Bitmap) bitmap);
+//            setViews((TextView) findViewById(R.id.copied_text1),
+//                    (TextView) findViewById(R.id.copied_image_text1),
+//                    (ImageView) findViewById(R.id.copied_image1),
+//                    text, bitmap);
         }
     }
 
@@ -627,12 +628,13 @@ public class MainActivity extends AppCompatActivity {
             ClipData.Item item = clip.getItemAt(0);
             Uri uri = item.getUri();
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            Object text = FileUtils.coerceToMimetypeUsingOpenAssetFile(this, uri, "r", "text/*", "UTF-8");
+            //Object text = FileUtils.coerceToMimetypeUsingOpenAssetFile(this, uri, "r", "text/*",                    "UTF-8");
             Object bitmap = FileUtils.coerceToMimetypeUsingOpenAssetFile(this, uri, "r", "image/*", null);
-            setViews((TextView) findViewById(R.id.copied_text2),
-                    (TextView) findViewById(R.id.copied_image_text2),
-                    (ImageView) findViewById(R.id.copied_image2),
-                    text, bitmap);
+            ((ImageView) findViewById(R.id.copied_image2)).setImageBitmap((Bitmap) bitmap);
+//            setViews((TextView) findViewById(R.id.copied_text2),
+//                    (TextView) findViewById(R.id.copied_image_text2),
+//                    (ImageView) findViewById(R.id.copied_image2),
+//                    text, bitmap);
         }
     }
 
@@ -643,12 +645,13 @@ public class MainActivity extends AppCompatActivity {
             ClipData.Item item = clip.getItemAt(0);
             Uri uri = item.getUri();
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            Object text = FileUtils.coerceToMimetypeUsingOpenFile(this, uri, "r", "text/*", "UTF-8");
+           // Object text = FileUtils.coerceToMimetypeUsingOpenFile(this, uri, "r", "text/*",                     "UTF-8");
             Object bitmap = FileUtils.coerceToMimetypeUsingOpenFile(this, uri, "r", "image/*", null);
-            setViews((TextView) findViewById(R.id.copied_text3),
-                    (TextView) findViewById(R.id.copied_image_text3),
-                    (ImageView) findViewById(R.id.copied_image3),
-                    text, bitmap);
+            ((ImageView) findViewById(R.id.copied_image3)).setImageBitmap((Bitmap) bitmap);
+//            setViews((TextView) findViewById(R.id.copied_text3),
+//                    (TextView) findViewById(R.id.copied_image_text3),
+//                    (ImageView) findViewById(R.id.copied_image3),
+//                    text, bitmap);
         }
     }
 
@@ -659,12 +662,13 @@ public class MainActivity extends AppCompatActivity {
             ClipData.Item item = clip.getItemAt(0);
             Uri uri = item.getUri();
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
-            Object text = FileUtils.coerceToMimetypeUsingOpenInputStream(this, uri, "text/*");
+           // Object text = FileUtils.coerceToMimetypeUsingOpenInputStream(this, uri, "text/*");
             Object bitmap = FileUtils.coerceToMimetypeUsingOpenInputStream(this, uri, "image/*");
-            setViews((TextView) findViewById(R.id.copied_text4),
-                    (TextView) findViewById(R.id.copied_image_text4),
-                    (ImageView) findViewById(R.id.copied_image4),
-                    text, bitmap);
+            ((ImageView) findViewById(R.id.copied_image4)).setImageBitmap((Bitmap) bitmap);
+//            setViews((TextView) findViewById(R.id.copied_text4),
+//                    (TextView) findViewById(R.id.copied_image_text4),
+//                    (ImageView) findViewById(R.id.copied_image4),
+//                    text, bitmap);
         }
     }
 
@@ -673,13 +677,14 @@ public class MainActivity extends AppCompatActivity {
         Log.e("NE", Thread.currentThread().getStackTrace()[2] + "bitmap " + bitmap);
         Log.e("NE", Thread.currentThread().getStackTrace()[2] + "text " + text);
         if (bitmap instanceof Bitmap) {
-            textView.setText((String) text);
+            //textView.setText((String) text);
+            textView.setText("");
             imageTextView.setText("");
             imageView.setImageBitmap((Bitmap) bitmap);
         } else {
-            textView.setText((String) text);
-            imageTextView.setText((String)bitmap);
-            imageView.setImageBitmap(null);
+//            textView.setText((String) text);
+//            imageTextView.setText((String)bitmap);
+//            imageView.setImageBitmap(null);
         }
     }
 }

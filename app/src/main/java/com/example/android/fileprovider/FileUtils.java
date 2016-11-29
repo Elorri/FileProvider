@@ -307,6 +307,7 @@ public class FileUtils {
             }
 
             if (mimetype.equals("image/*")) {//If app requested an Image.  May crash because there is no actual test on mimetype
+                Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
                 return BitmapFactory.decodeFileDescriptor(assetFileDescriptor.getFileDescriptor());
             }
             assetFileDescriptor.close();
