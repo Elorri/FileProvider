@@ -593,9 +593,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void paste(View view) {
         pasteUsingOpenTypedAsset();
-//        pasteUsingOpenAsset();
-//        pasteUsingOpenFile();
-//        pasteUsingOpenInputStream();
+        pasteUsingOpenAsset();
+        pasteUsingOpenFile();
+        pasteUsingOpenInputStream();
     }
 
     public void pasteUsingOpenTypedAsset() {
@@ -664,7 +664,7 @@ public class MainActivity extends AppCompatActivity {
             Log.e("NE", Thread.currentThread().getStackTrace()[2] + "" + uri);
            // Object text = FileUtils.coerceToMimetypeUsingOpenInputStream(this, uri, "text/*");
             Object bitmap = FileUtils.coerceToMimetypeUsingOpenInputStream(this, uri, "image/*");
-            ((ImageView) findViewById(R.id.copied_image4)).setImageBitmap((Bitmap) bitmap);
+          //  ((ImageView) findViewById(R.id.copied_image4)).setImageBitmap((Bitmap) bitmap);
 //            setViews((TextView) findViewById(R.id.copied_text4),
 //                    (TextView) findViewById(R.id.copied_image_text4),
 //                    (ImageView) findViewById(R.id.copied_image4),

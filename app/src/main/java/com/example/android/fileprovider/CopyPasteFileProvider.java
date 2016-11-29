@@ -241,6 +241,9 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
      */
     @Override
     public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
+
+        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
+
         // Checks to see if the MIME type filter matches a supported MIME type.
         String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
 
@@ -560,4 +563,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
         System.arraycopy(original, 0, result, 0, newLength);
         return result;
     }
+
+
 }
