@@ -89,16 +89,19 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
     @Override
     public void attachInfo(Context context, ProviderInfo info) {
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
         super.attachInfo(context, info);
 
         // Sanity check our security
         if (info.exported) {
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
             throw new SecurityException("Provider must not be exported");
         }
         if (!info.grantUriPermissions) {
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
             throw new SecurityException("Provider must grant uri permissions");
         }
-
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
         mStrategy = getPathStrategy(context, info.authority);
     }
 
@@ -344,6 +347,7 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
     //Copied from {@link android.support.v4.content.FileProvider}
     private static PathStrategy getPathStrategy(Context context, String authority) {
+        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
         PathStrategy strat;
         synchronized (sCache) {
             strat = sCache.get(authority);

@@ -535,6 +535,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void copyImage(View view) {
+
         Log.e("NE", Thread.currentThread().getStackTrace()[2] + "mImageUri" + mImageUri);
 
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
