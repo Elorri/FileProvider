@@ -82,26 +82,21 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
     @Override
     public boolean onCreate() {
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
         mContext = getContext();
         return true;
     }
 
     @Override
     public void attachInfo(Context context, ProviderInfo info) {
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
         super.attachInfo(context, info);
 
         // Sanity check our security
         if (info.exported) {
-            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
             throw new SecurityException("Provider must not be exported");
         }
         if (!info.grantUriPermissions) {
-            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
             throw new SecurityException("Provider must grant uri permissions");
         }
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
         mStrategy = getPathStrategy(context, info.authority);
     }
 
@@ -113,10 +108,8 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
-        Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "");
         switch (sUriMatcher.match(uri)) {
             case CUSTOM_FILE_URI:
-                Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "CUSTOM_FILE_URI");
                 // ContentProvider has already checked granted permissions
                 final File file = mStrategy.getFileForUri(uri);
 
@@ -153,7 +146,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
     @Override
     public String getType(Uri uri) {
-        Log.e("TAG", Thread.currentThread().getStackTrace()[2] + "uri " + uri);
         // ContentProvider has already checked granted permissions
         final File file = mStrategy.getFileForUri(uri);
 
@@ -162,16 +154,13 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
             final String extension = file.getName().substring(lastDot + 1);
 
             if (extension.equals(mContext.getResources().getString(R.string.custom_extension))) {
-                Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered " + CustomContract.FileEntry.CONTENT_ITEM_TYPE);
                 return CustomContract.FileEntry.CONTENT_ITEM_TYPE;
             }
             final String mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
             if (mime != null) {
-                Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered " + mime);
                 return mime;
             }
         }
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimetype registered application/octet-stream");
         return "application/octet-stream";
 
     }
@@ -195,7 +184,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
     @Override //Copied from {@link android.support.v4.content.FileProvider}
     public ParcelFileDescriptor openFile(Uri uri, String mode) {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
         // ContentProvider has already checked granted permissions
         return getParcelFileDescriptor(uri, mode);
 
@@ -216,7 +204,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
     @Nullable
     @Override
     public AssetFileDescriptor openAssetFile(Uri uri, String mode) throws FileNotFoundException {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
         String mimetype = "text/plain"; //Default mimetype we decide to use in case no mimetype are specified by the calling app.
         return openTypedAssetFile(uri, mimetype, null);
     }
@@ -224,7 +211,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
     @Nullable
     @Override
     public AssetFileDescriptor openAssetFile(Uri uri, String mode, CancellationSignal signal) throws FileNotFoundException {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
         return openAssetFile(uri, mode);
     }
 
@@ -245,16 +231,11 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
     @Override
     public AssetFileDescriptor openTypedAssetFile(Uri uri, String mimeTypeFilter, Bundle opts) throws FileNotFoundException {
 
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
-
         // Checks to see if the MIME type filter matches a supported MIME type.
         String[] mimeTypes = getStreamTypes(uri, mimeTypeFilter);
 
-        if (mimeTypes != null)
-            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "mimeTypes in common" + mimeTypes[0]);
         // If the MIME type is supported
         if (mimeTypes != null) {
-            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "Renvoyer un AssetFileDescriptor different pour chaque mimetype here");
             //Query if file is existing
             // Retrieves the note for this URI. Uses the query method defined for this provider,
             // rather than using the database query method.
@@ -279,10 +260,8 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
             // ParcelFileDescriptor parcelFileDescritor = openPipeHelper(uri, mimeTypes[0], opts,                     cursor, this);
             ParcelFileDescriptor parcelFileDescritor = getParcelFileDescriptor(uri, "r");             //Should I use this instead ?
 
-            Log.e("FP", Thread.currentThread().getStackTrace()[2] + "return image or text real data");
-            return new AssetFileDescriptor(parcelFileDescritor, 0, AssetFileDescriptor.UNKNOWN_LENGTH);
+           return new AssetFileDescriptor(parcelFileDescritor, 0, AssetFileDescriptor.UNKNOWN_LENGTH);
         }
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "return a read-only handle to the file");
         // If the MIME type is not supported, return a read-only handle to the file.
         return super.openTypedAssetFile(uri, mimeTypeFilter, opts);
     }
@@ -299,7 +278,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
      */
     @Override
     public String[] getStreamTypes(Uri uri, String mimeTypeFilter) {
-        Log.e("FP", Thread.currentThread().getStackTrace()[2] + "getStreamTypes " + getType(uri));
         ClipDescription clipItemMimeType = new ClipDescription(null, new String[]{getType(uri)});
         return clipItemMimeType.filterMimeTypes(mimeTypeFilter);
 
@@ -319,10 +297,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
      */
     @Override
     public void writeDataToPipe(ParcelFileDescriptor output, Uri uri, String mimeType, Bundle opts, Cursor cursor) {
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "See if we do different stream import depending on the data type given");
-
-        Log.e("FP", "output " + output);
-
         FileOutputStream out = new FileOutputStream(output.getFileDescriptor());
         PrintWriter printWriter = null;
         String charset = "UTF-8";
@@ -347,7 +321,6 @@ public class CopyPasteFileProvider extends ContentProvider implements ContentPro
 
     //Copied from {@link android.support.v4.content.FileProvider}
     private static PathStrategy getPathStrategy(Context context, String authority) {
-        Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "");
         PathStrategy strat;
         synchronized (sCache) {
             strat = sCache.get(authority);

@@ -310,6 +310,7 @@ public class FileUtils {
                 Log.e("Nebo", Thread.currentThread().getStackTrace()[2]+"");
                 return BitmapFactory.decodeFileDescriptor(assetFileDescriptor.getFileDescriptor());
             }
+            
             assetFileDescriptor.close();
         } catch (IOException e) {
             Log.e("FP", Thread.currentThread().getStackTrace()[2] + "");
@@ -446,5 +447,13 @@ public class FileUtils {
             }
         }
         return uri.toString();
+    }
+
+    public static void printFiles(File filesDir)
+    {
+        for (File file : filesDir.listFiles())
+        {
+            Log.e("Nebo", Thread.currentThread().getStackTrace()[2] + "file " + file);
+        }
     }
 }

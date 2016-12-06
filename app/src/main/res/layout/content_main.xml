@@ -114,105 +114,212 @@
             android:padding="16dp">
 
             <Button
-                android:id="@+id/paste"
+                android:id="@+id/pasteAsText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:onClick="paste"
-                android:text="Paste" />
+                android:onClick="pasteAsText"
+                android:text="Paste As Text" />
 
             <TextView
-                android:id="@+id/UsingOpenTypedAsset"
+                android:id="@+id/textUsingCoerceToText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingCoerceToText" />
+
+            <TextView
+                android:id="@+id/copiedTextUsingCoerceToText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            
+            <TextView
+                android:id="@+id/textUsingOpenTypedAsset"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/holo_purple"
                 android:text="UsingOpenTypedAsset" />
 
             <TextView
-                android:id="@+id/copied_text1"
+                android:id="@+id/copiedTextUsingOpenTypedAsset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
-
+            
             <TextView
-                android:id="@+id/copied_image_text1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <ImageView
-                android:id="@+id/copied_image1"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:scaleType="centerCrop" />
-
-
-            <TextView
-                android:id="@+id/UsingOpenAsset"
+                android:id="@+id/textUsingOpenAsset"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/holo_purple"
                 android:text="UsingOpenAsset" />
 
             <TextView
-                android:id="@+id/copied_text2"
+                android:id="@+id/copiedTextUsingOpenAsset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/copied_image_text2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <ImageView
-                android:id="@+id/copied_image2"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:scaleType="centerCrop" />
-
-            <TextView
-                android:id="@+id/UsingOpenFile"
+                android:id="@+id/textUsingOpenFile"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/holo_purple"
                 android:text="UsingOpenFile" />
 
             <TextView
-                android:id="@+id/copied_text3"
+                android:id="@+id/copiedTextUsingOpenFile"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/copied_image_text3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <ImageView
-                android:id="@+id/copied_image3"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:scaleType="centerCrop" />
-
-            <TextView
-                android:id="@+id/UsingOpenInputStream"
+                android:id="@+id/textUsingOpenInputStream"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@android:color/holo_purple"
                 android:text="UsingOpenInputStream" />
 
             <TextView
-                android:id="@+id/copied_text4"
+                android:id="@+id/copiedTextUsingOpenInputStream"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/darker_gray"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/pasteAsHtml"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="pasteAsHtml"
+                android:text="Paste As Html" />
+
+            <TextView
+                android:id="@+id/htmlUsingCoerceToHtml"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingCoerceToHtml" />
+
+            <TextView
+                android:id="@+id/copiedHtmlUsingCoerceToHtml"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/copied_image_text4"
+                android:id="@+id/htmlUsingOpenTypedAsset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenTypedAsset" />
+
+            <TextView
+                android:id="@+id/copiedHtmlUsingOpenTypedAsset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            
+            <TextView
+                android:id="@+id/htmlUsingOpenAsset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenAsset" />
+
+            <TextView
+                android:id="@+id/copiedHtmlUsingOpenAsset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
 
-            <ImageView
-                android:id="@+id/copied_image4"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:scaleType="centerCrop" />
+            <TextView
+                android:id="@+id/htmlUsingOpenFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenFile" />
 
+            <TextView
+                android:id="@+id/copiedHtmlUsingOpenFile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/htmlUsingOpenInputStream"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenInputStream" />
+
+            <TextView
+                android:id="@+id/copiedHtmlUsingOpenInputStream"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/darker_gray"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <Button
+                android:id="@+id/pasteAsImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="pasteAsImage"
+                android:text="Paste As Image" />
+
+            <TextView
+                android:id="@+id/imageUsingOpenTypedAsset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenTypedAsset" />
+
+            <ImageView
+                android:id="@+id/copiedImageUsingOpenTypedAsset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/imageUsingOpenAsset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenAsset" />
+
+            <ImageView
+                android:id="@+id/copiedImageUsingOpenAsset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            
+            <TextView
+                android:id="@+id/imageUsingOpenFile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenFile" />
+
+            <ImageView
+                android:id="@+id/copiedImageUsingOpenFile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/imageUsingOpenInputStream"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/holo_purple"
+                android:text="UsingOpenInputStream" />
+
+            <ImageView
+                android:id="@+id/copiedImageUsingOpenInputStream"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            
         </LinearLayout>
 
     </LinearLayout>
